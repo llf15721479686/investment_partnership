@@ -1,0 +1,5 @@
+# 本应用使用Python标准库，无需额外依赖
+# 仅用于打包时需要
+
+# 如果要打包为exe，需要安装pyinstaller
+# pip install pyinstaller
