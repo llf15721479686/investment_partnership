@@ -3,6 +3,8 @@ import os
 import sqlite3
 from pathlib import Path
 from datetime import datetime
+import urllib.parse
+import json
 
 # 确保数据库模块可以导入
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -31,8 +33,6 @@ def main():
     """启动应用"""
     import http.server
     import socketserver
-    import json
-    import urllib.parse
 
     # 创建数据库实例
     db = InvestmentDB()
@@ -87,7 +87,46 @@ def main():
             """处理API请求"""
             try:
                 print(f"API请求: {self.path}, 方法: {self.command}")
-                if self.path == '/api/projects':
+
+                # ============ 员工管理相关API ============
+                # 先处理带有查询参数的路径
+                if self.path.startswith('/api/employees'):
+                    self.handle_employees()
+                elif self.path.startswith('/api/employee/'):
+                    self.handle_employee_detail()
+                elif self.path.startswith('/api/employee_summary'):
+                    self.handle_employee_summary()
+                elif self.path.startswith('/api/employee_details'):
+                    self.handle_employee_details()
+                elif self.path.startswith('/api/salary'):
+                    self.handle_salary()
+                elif self.path.startswith('/api/schedule'):
+                    self.handle_schedule()
+                elif self.path.startswith('/api/create_schedule'):
+                    self.handle_create_schedule()  # 新增排班
+                elif self.path.startswith('/api/attendance'):
+                    self.handle_attendance()
+                elif self.path.startswith('/api/performance'):
+                    self.handle_performance()
+                elif self.path.startswith('/api/training'):
+                    self.handle_training()
+                elif self.path.startswith('/api/personnel_stats'):
+                    self.handle_personnel_stats()
+                # 添加缺失的API端点
+                elif self.path.startswith('/api/project_schedule'):
+                    self.handle_schedule()  # 复用同一个处理方法
+                elif self.path.startswith('/api/attendance_report'):
+                    self.handle_attendance()  # 复用同一个处理方法
+                elif self.path.startswith('/api/salary_records'):
+                    self.handle_salary()  # 复用同一个处理方法
+                elif self.path.startswith('/api/training_stats'):
+                    self.handle_training()  # 复用同一个处理方法
+                elif self.path.startswith('/api/upcoming_trainings'):
+                    self.handle_training()  # 复用同一个处理方法
+                elif self.path.startswith('/api/recent_performance'):
+                    self.handle_performance()  # 复用同一个处理方法
+                # ============ 原有API ============
+                elif self.path == '/api/projects':
                     self.handle_projects()
                 elif self.path.startswith('/api/project/'):
                     if '/tiers' in self.path:
@@ -123,61 +162,376 @@ def main():
                     self.handle_stats()
                 else:
                     print(f"API端点未找到: {self.path}")
-                    self.send_error(404, "API端点未找到")
+                    self.send_json_response({
+                        'success': False,
+                        'error': f'API端点未找到: {self.path}'
+                    }, status=404)
             except Exception as e:
                 print(f"处理API请求时出错: {e}")
-                self.send_json_response({
-                    'success': False,
-                    'error': str(e)
-                }, status=500)
+                import traceback
+                traceback.print_exc()
+                try:
+                    error_msg = str(e)
+                    if isinstance(e, UnicodeEncodeError):
+                        error_msg = "编码错误"
+                    self.send_json_response({
+                        'success': False,
+                        'error': error_msg
+                    }, status=500)
+                except Exception as send_error:
+                    print(f"发送错误响应时也失败了: {send_error}")
+                    try:
+                        self.send_response(500)
+                        self.send_header('Content-type', 'application/json; charset=utf-8')
+                        self.end_headers()
+                        self.wfile.write(b'{"success": false, "error": "Internal server error"}')
+                    except:
+                        pass
 
         def get_request_data(self):
             """获取请求数据 - 修复编码问题"""
-            if 'Content-Length' not in self.headers:
-                return {}
+            print(f"\n=== 进入get_request_data()方法 ===")
 
-            content_length = int(self.headers['Content-Length'])
-            raw_data = self.rfile.read(content_length)
-
-            if not raw_data:
-                return {}
-
-            # 优先使用 UTF-8 编码
             try:
-                decoded_data = raw_data.decode('utf-8')
-                data = json.loads(decoded_data)
-                return data
-            except UnicodeDecodeError:
-                # 如果是 UTF-8 解码失败，尝试其他编码
+                if 'Content-Length' not in self.headers:
+                    print("Content-Length不存在于headers中")
+                    return {}
+
+                content_length = int(self.headers['Content-Length'])
+                print(f"Content-Length: {content_length}")
+
+                raw_data = self.rfile.read(content_length)
+                print(f"读取的原始数据长度: {len(raw_data)} 字节")
+
+                if not raw_data:
+                    print("原始数据为空")
+                    return {}
+
+                # 直接使用UTF-8解码，如果失败则使用错误忽略
                 try:
-                    decoded_data = raw_data.decode('gbk')
+                    decoded_data = raw_data.decode('utf-8')
+                    print(f"UTF-8解码成功")
+                except UnicodeDecodeError:
+                    print(f"UTF-8解码失败，使用错误忽略模式")
+                    decoded_data = raw_data.decode('utf-8', errors='ignore')
+
+                print(f"解码后的数据前200字符: {decoded_data[:200]}")
+
+                try:
                     data = json.loads(decoded_data)
+                    print(f"JSON解析成功，返回数据")
                     return data
-                except Exception:
-                    # 如果还是失败，尝试忽略错误
-                    try:
-                        decoded_data = raw_data.decode('utf-8', errors='ignore')
-                        data = json.loads(decoded_data)
-                        return data
-                    except Exception as e:
-                        print(f"无法解码请求数据: {e}")
-                        print(f"数据前100字节: {raw_data[:100]}")
-                        return {}
-            except json.JSONDecodeError as e:
-                print(f"JSON解析错误: {e}")
-                print(f"原始数据: {raw_data[:100]}...")
+                except json.JSONDecodeError as e:
+                    print(f"JSON解析错误: {e}")
+                    print(f"解码后的数据: {decoded_data[:100]}")
+                    return {}
+            except Exception as e:
+                print(f"get_request_data()方法出现异常: {e}")
+                import traceback
+                traceback.print_exc()
                 return {}
 
         def send_json_response(self, data, status=200):
-            """发送JSON响应"""
+            """发送JSON响应 - 修复编码问题"""
             self.send_response(status)
             self.send_header('Content-type', 'application/json; charset=utf-8')
             self.send_header('Access-Control-Allow-Origin', '*')
             self.end_headers()
 
-            # 关键：使用ensure_ascii=False来正确处理中文字符
-            json_str = json.dumps(data, ensure_ascii=False)
-            self.wfile.write(json_str.encode('utf-8'))
+            try:
+                # 使用简单的方式处理数据
+                json_str = json.dumps(data, ensure_ascii=False, default=str)
+                json_bytes = json_str.encode('utf-8')
+                self.wfile.write(json_bytes)
+            except Exception as e:
+                print(f"发送JSON响应时出错: {e}")
+                # 发送最简单的错误响应
+                try:
+                    error_json = '{"success": false, "error": "响应错误"}'
+                    self.wfile.write(error_json.encode('utf-8'))
+                except:
+                    pass
+
+        # ================== 员工管理相关处理方法 ==================
+
+        def handle_employees(self):
+            """处理员工列表请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            project_id = params.get('project_id', [None])[0]
+
+            print(f"=== 处理员工列表请求 ===")
+            print(f"请求路径: {self.path}")
+            print(f"请求方法: {self.command}")
+            print(f"查询参数: {params}")
+            print(f"提取的project_id: {project_id}")
+
+            if not project_id:
+                print("错误: 缺少project_id参数")
+                self.send_json_response({'success': False, 'error': '需要project_id参数'}, status=400)
+                return
+
+            if self.command == 'GET':
+                try:
+                    status_filter = params.get('status', [None])[0]
+                    print(f"GET请求 - 状态过滤: {status_filter}")
+                    employees = db.get_project_employees(int(project_id), status_filter)
+                    print(f"获取到 {len(employees)} 名员工")
+                    self.send_json_response(employees)
+                except Exception as e:
+                    print(f"GET请求异常: {str(e)}")
+                    self.send_json_response({'success': False, 'error': str(e)}, status=500)
+
+
+            elif self.command == 'POST':
+
+                print(f"=== 处理员工添加请求 ===")
+
+                # 简化：直接使用最安全的方式获取数据
+
+                try:
+
+                    content_length = int(self.headers.get('Content-Length', 0))
+
+                    if content_length > 0:
+
+                        raw_data = self.rfile.read(content_length)
+
+                        decoded_data = raw_data.decode('utf-8', errors='ignore')
+
+                        data = json.loads(decoded_data)
+
+                    else:
+
+                        data = {}
+
+                except Exception as e:
+
+                    print(f"解析请求数据失败: {e}")
+
+                    self.send_json_response({'success': False, 'error': f'数据解析失败: {str(e)}'}, status=400)
+
+                    return
+
+                print(f"解析到的数据: {data}")
+
+                try:
+
+                    # 调用数据库方法
+
+                    employee_id = db.add_employee(
+
+                        int(project_id),
+
+                        data.get('name', ''),
+
+                        data.get('position', ''),
+
+                        data.get('employment_date', ''),
+
+                        data.get('employee_number'),
+
+                        data.get('gender'),
+
+                        data.get('birth_date'),
+
+                        data.get('id_card'),
+
+                        data.get('phone'),
+
+                        data.get('emergency_contact'),
+
+                        data.get('emergency_phone'),
+
+                        data.get('address'),
+
+                        data.get('notes')
+
+                    )
+
+                    print(f"员工添加成功，ID: {employee_id}")
+
+                    self.send_json_response({'success': True, 'employee_id': employee_id})
+
+
+                except Exception as e:
+
+                    print(f"添加员工到数据库失败: {e}")
+
+                    import traceback
+
+                    traceback.print_exc()
+
+                    self.send_json_response({'success': False, 'error': f'数据库操作失败: {str(e)}'}, status=400)
+
+                print(f"=== 员工添加请求处理完成 ===\n")
+
+            print(f"=== 请求处理完成 ===\n")
+
+        def handle_employee_detail(self):
+            """处理单个员工请求"""
+            parts = self.path.split('/')
+            employee_id = int(parts[3]) if len(parts) > 3 and parts[3].isdigit() else None
+
+            if not employee_id:
+                self.send_json_response({'success': False, 'error': '无效的员工ID'}, status=400)
+                return
+
+            if self.command == 'GET':
+                try:
+                    employee = db.get_employee_details(employee_id)
+                    if employee:
+                        self.send_json_response(employee)
+                    else:
+                        self.send_json_response({'success': False, 'error': '员工未找到'}, status=404)
+                except Exception as e:
+                    self.send_json_response({'success': False, 'error': str(e)}, status=500)
+
+            elif self.command == 'PUT':
+                data = self.get_request_data()
+                try:
+                    db.update_employee(employee_id, **data)
+                    self.send_json_response({'success': True})
+                except Exception as e:
+                    self.send_json_response({'success': False, 'error': str(e)}, status=400)
+
+        def handle_salary(self):
+            """处理薪资相关请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            project_id = params.get('project_id', [None])[0]
+            salary_month = params.get('month', [None])[0]
+
+            if not project_id:
+                self.send_json_response({'success': False, 'error': '需要project_id参数'}, status=400)
+                return
+
+            if self.command == 'GET':
+                try:
+                    salary_records = db.get_salary_records(int(project_id), salary_month)
+                    self.send_json_response(salary_records)
+                except Exception as e:
+                    self.send_json_response({'success': False, 'error': str(e)}, status=500)
+
+        def handle_schedule(self):
+            """处理排班相关请求 - 支持多种路径格式"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            print(f"=== 处理排班请求 ===")
+            print(f"请求路径: {self.path}")
+            print(f"请求参数: {params}")
+
+            if self.command == 'GET':
+                # 统一处理参数名称
+                # 支持 schedule_date 和 date 两种参数名
+                schedule_date = params.get('schedule_date', [None])[0] or params.get('date', [None])[0]
+                project_id = params.get('project_id', [None])[0]
+                employee_id = params.get('employee_id', [None])[0]
+                start_date = params.get('start_date', [None])[0]
+                end_date = params.get('end_date', [None])[0]
+
+                print(f"解析后的参数:")
+                print(f"  project_id: {project_id}")
+                print(f"  schedule_date: {schedule_date}")
+                print(f"  employee_id: {employee_id}")
+                print(f"  start_date: {start_date}")
+                print(f"  end_date: {end_date}")
+
+                if project_id and schedule_date:
+                    # 获取特定日期的项目排班
+                    try:
+                        schedule = db.get_project_schedule(int(project_id), schedule_date)
+                        self.send_json_response(schedule)
+                        return
+                    except Exception as e:
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                        return
+                elif employee_id and start_date and end_date:
+                    # 获取员工时间段内的排班
+                    try:
+                        schedule = db.get_employee_schedule(int(employee_id), start_date, end_date)
+                        self.send_json_response(schedule)
+                        return
+                    except Exception as e:
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                        return
+                else:
+                    # 参数不足
+                    error_msg = '需要参数'
+                    if not project_id and not employee_id:
+                        error_msg = '需要project_id或employee_id参数'
+                    elif project_id and not schedule_date:
+                        error_msg = '需要schedule_date参数'
+                    elif employee_id and (not start_date or not end_date):
+                        error_msg = '需要start_date和end_date参数'
+
+                    self.send_json_response({'success': False, 'error': error_msg}, status=400)
+                    return
+
+        def handle_attendance(self):
+            """处理考勤相关请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            project_id = params.get('project_id', [None])[0]
+            start_date = params.get('start_date', [None])[0]
+            end_date = params.get('end_date', [None])[0]
+
+            if self.command == 'GET':
+                if project_id and start_date and end_date:
+                    try:
+                        report = db.get_attendance_report(int(project_id), start_date, end_date)
+                        self.send_json_response(report)
+                    except Exception as e:
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                else:
+                    self.send_json_response({'success': False, 'error': '需要project_id、start_date和end_date参数'},
+                                            status=400)
+
+        def handle_performance(self):
+            """处理绩效评估请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            employee_id = params.get('employee_id', [None])[0]
+            limit = params.get('limit', [10])[0]
+
+            if self.command == 'GET':
+                if employee_id:
+                    try:
+                        performance = db.get_employee_performance(int(employee_id), int(limit))
+                        self.send_json_response(performance)
+                    except Exception as e:
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                else:
+                    self.send_json_response({'success': False, 'error': '需要employee_id参数'}, status=400)
+
+        def handle_training(self):
+            """处理培训相关请求"""
+            # 这里可以添加培训相关的处理方法
+            self.send_json_response({'success': False, 'error': '培训功能暂未实现'}, status=501)
+
+        def handle_personnel_stats(self):
+            """处理人员统计请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            project_id = params.get('project_id', [None])[0]
+
+            if self.command == 'GET':
+                if project_id:
+                    try:
+                        stats = db.get_personnel_stats(int(project_id))
+                        self.send_json_response(stats)
+                    except Exception as e:
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                else:
+                    self.send_json_response({'success': False, 'error': '需要project_id参数'}, status=400)
+
+        # ================== 原有处理方法 ==================
 
         def handle_projects(self):
             """处理项目相关请求"""
@@ -850,6 +1204,107 @@ def main():
                         self.send_json_response(stats)
                     except Exception as e:
                         self.send_json_response({'success': False, 'error': str(e)}, status=500)
+
+        def handle_employee_summary(self):
+            """处理员工摘要信息请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            employee_id = params.get('employee_id', [None])[0]
+
+            if self.command == 'GET':
+                if employee_id:
+                    try:
+                        # 调用数据库方法获取员工摘要信息
+                        # 这里需要实现get_employee_summary方法
+                        summary = db.get_employee_summary(int(employee_id))
+                        if summary:
+                            self.send_json_response(summary)
+                        else:
+                            self.send_json_response({'success': False, 'error': '员工未找到'}, status=404)
+                    except Exception as e:
+                        print(f"获取员工摘要失败: {e}")
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                else:
+                    self.send_json_response({'success': False, 'error': '需要employee_id参数'}, status=400)
+
+        def handle_employee_details(self):
+            """处理员工详细信息请求"""
+            query_components = urllib.parse.urlparse(self.path)
+            params = urllib.parse.parse_qs(query_components.query)
+
+            employee_id = params.get('employee_id', [None])[0]
+
+            if self.command == 'GET':
+                if employee_id:
+                    try:
+                        # 调用数据库方法获取员工详细信息
+                        details = db.get_employee_details(int(employee_id))
+                        if details:
+                            self.send_json_response(details)
+                        else:
+                            self.send_json_response({'success': False, 'error': '员工未找到'}, status=404)
+                    except Exception as e:
+                        print(f"获取员工详情失败: {e}")
+                        self.send_json_response({'success': False, 'error': str(e)}, status=500)
+                else:
+                    self.send_json_response({'success': False, 'error': '需要employee_id参数'}, status=400)
+
+        def handle_create_schedule(self):
+            """处理创建排班请求"""
+            print(f"=== 处理创建排班请求 ===")
+            print(f"请求路径: {self.path}")
+            print(f"请求方法: {self.command}")
+
+            if self.command == 'POST':
+                try:
+                    # 获取请求数据
+                    data = self.get_request_data()
+                    print(f"创建排班请求数据: {data}")
+
+                    # 验证必要参数
+                    required_fields = ['project_id', 'employee_id', 'schedule_date']
+                    for field in required_fields:
+                        if field not in data:
+                            self.send_json_response({
+                                'success': False,
+                                'error': f'缺少必要参数: {field}'
+                            }, status=400)
+                            return
+
+                    # 调用数据库方法创建排班 - 修正参数列表
+                    schedule_id = db.create_schedule(
+                        project_id=int(data['project_id']),
+                        employee_id=int(data['employee_id']),
+                        schedule_date=data['schedule_date'],
+                        shift_type=data.get('shift_type', '白班'),
+                        start_time=data.get('start_time', '09:00'),
+                        end_time=data.get('end_time', '18:00'),
+                        rest_hours=float(data.get('rest_hours', 1.0)),  # 添加 rest_hours 参数
+                        room_assignment=data.get('room_assignment', None),  # 添加 room_assignment 参数
+                        notes=data.get('notes', '')
+                    )
+
+                    print(f"排班创建成功，ID: {schedule_id}")
+                    self.send_json_response({
+                        'success': True,
+                        'schedule_id': schedule_id,
+                        'message': '排班创建成功'
+                    })
+
+                except Exception as e:
+                    print(f"创建排班失败: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    self.send_json_response({
+                        'success': False,
+                        'error': f'创建排班失败: {str(e)}'
+                    }, status=400)
+            else:
+                self.send_json_response({
+                    'success': False,
+                    'error': '只支持POST方法'
+                }, status=405)
 
     # 启动服务器
     PORT = 8080

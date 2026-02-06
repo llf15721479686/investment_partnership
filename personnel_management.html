@@ -1,0 +1,3165 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人员管理系统 - 足浴店投资管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <style>
+        .sidebar {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            padding-top: 20px;
+            border-right: 1px solid #dee2e6;
+        }
+        .nav-link {
+            color: #495057;
+            padding: 10px 20px;
+            margin: 2px 0;
+            border-radius: 5px;
+        }
+        .nav-link:hover, .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        .main-content {
+            padding: 20px;
+            background-color: #fff;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: bold;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0,123,255,0.05);
+        }
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        .stat-card .number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-card .label {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        .badge-status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+        }
+        .badge-active {
+            background-color: #28a745;
+            color: white;
+        }
+        .badge-inactive {
+            background-color: #6c757d;
+            color: white;
+        }
+        .badge-leave {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .modal-dialog-scrollable .modal-body {
+            max-height: 60vh;
+        }
+        .employee-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #007bff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .skill-badge {
+            margin: 2px;
+            font-size: 12px;
+        }
+        .schedule-cell {
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin: 2px;
+        }
+        .schedule-shift {
+            background-color: #e7f1ff;
+            border: 1px solid #cfe2ff;
+        }
+        .schedule-off {
+            background-color: #f8f9fa;
+            color: #6c757d;
+        }
+        .attendance-present {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .attendance-absent {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .attendance-late {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+    </style>
+</head>
+<body>
+    <!-- 项目选择模态框 -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">选择项目</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row" id="projectList">
+                        <!-- 项目列表将通过JS动态加载 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 员工详情模态框 -->
+    <div class="modal fade" id="employeeDetailModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">员工详情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="employeeDetailContent">
+                        <!-- 员工详情内容将通过JS动态加载 -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" id="editEmployeeBtn">编辑</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新增/编辑员工模态框 -->
+    <div class="modal fade" id="employeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="employeeModalTitle">新增员工</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="employeeForm">
+                        <input type="hidden" id="employeeId">
+                        <input type="hidden" id="projectId" value="">
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="employeeName" class="form-label">姓名 *</label>
+                                    <input type="text" class="form-control" id="employeeName" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="employeeNumber" class="form-label">员工编号</label>
+                                    <input type="text" class="form-control" id="employeeNumber" readonly>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="position" class="form-label">职位 *</label>
+                                    <select class="form-select" id="position" required>
+                                        <option value="">请选择职位</option>
+                                        <option value="店长">店长</option>
+                                        <option value="技师">技师</option>
+                                        <option value="前台">前台</option>
+                                        <option value="清洁">清洁</option>
+                                        <option value="收银">收银</option>
+                                        <option value="经理">经理</option>
+                                        <option value="助理">助理</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="gender" class="form-label">性别</label>
+                                    <select class="form-select" id="gender">
+                                        <option value="">请选择</option>
+                                        <option value="男">男</option>
+                                        <option value="女">女</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="birthDate" class="form-label">出生日期</label>
+                                    <input type="date" class="form-control" id="birthDate">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="employmentDate" class="form-label">入职日期 *</label>
+                                    <input type="date" class="form-control" id="employmentDate" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="idCard" class="form-label">身份证号</label>
+                                    <input type="text" class="form-control" id="idCard" maxlength="18">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="phone" class="form-label">联系电话</label>
+                                    <input type="tel" class="form-control" id="phone">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="emergencyContact" class="form-label">紧急联系人</label>
+                                    <input type="text" class="form-control" id="emergencyContact">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="emergencyPhone" class="form-label">紧急联系电话</label>
+                                    <input type="tel" class="form-control" id="emergencyPhone">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="address" class="form-label">住址</label>
+                            <input type="text" class="form-control" id="address">
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="notes" class="form-label">备注</label>
+                            <textarea class="form-control" id="notes" rows="3"></textarea>
+                        </div>
+
+                        <div class="mb-3" id="skillsSection">
+                            <label class="form-label">技能信息</label>
+                            <div id="skillsContainer">
+                                <!-- 技能信息将通过JS动态添加 -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="addSkillField()">
+                                <i class="bi bi-plus"></i> 添加技能
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="saveEmployee()">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 排班管理模态框 -->
+    <div class="modal fade" id="scheduleModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">排班管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="mb-3">
+                                <label for="scheduleDate" class="form-label">选择日期</label>
+                                <input type="date" class="form-control" id="scheduleDate" onchange="loadSchedule()">
+                            </div>
+
+                            <div class="card">
+                                <div class="card-header">员工列表</div>
+                                <div class="card-body p-0">
+                                    <ul class="list-group list-group-flush" id="employeeList">
+                                        <!-- 员工列表将通过JS动态加载 -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-9">
+                            <div class="mb-3">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-primary" onclick="previousDay()">前一天</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="today()">今天</button>
+                                    <button type="button" class="btn btn-outline-primary" onclick="nextDay()">后一天</button>
+                                </div>
+                                <button class="btn btn-primary float-end" onclick="addSchedule()">
+                                    <i class="bi bi-plus"></i> 新增排班
+                                </button>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-bordered" id="scheduleTable">
+                                    <thead>
+                                        <tr>
+                                            <th>员工</th>
+                                            <th>早班<br>(09:00-17:00)</th>
+                                            <th>中班<br>(13:00-21:00)</th>
+                                            <th>晚班<br>(17:00-01:00)</th>
+                                            <th>全天<br>(09:00-21:00)</th>
+                                            <th>状态</th>
+                                            <th>操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="scheduleBody">
+                                        <!-- 排班内容将通过JS动态加载 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 考勤记录模态框 -->
+    <div class="modal fade" id="attendanceModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">考勤管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="attendanceStartDate" class="form-label">开始日期</label>
+                            <input type="date" class="form-control" id="attendanceStartDate">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="attendanceEndDate" class="form-label">结束日期</label>
+                            <input type="date" class="form-control" id="attendanceEndDate">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary mt-4" onclick="loadAttendanceReport()">查询</button>
+                            <button class="btn btn-outline-primary mt-4 ms-2" onclick="exportAttendance()">导出报表</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="attendanceTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>员工编号</th>
+                                    <th>姓名</th>
+                                    <th>职位</th>
+                                    <th>排班天数</th>
+                                    <th>出勤天数</th>
+                                    <th>迟到</th>
+                                    <th>早退</th>
+                                    <th>旷工</th>
+                                    <th>请假</th>
+                                    <th>总工时</th>
+                                    <th>出勤率</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendanceBody">
+                                <!-- 考勤数据将通过JS动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 薪资管理模态框 -->
+    <div class="modal fade" id="salaryModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">薪资管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-3">
+                            <label for="salaryMonth" class="form-label">选择月份</label>
+                            <input type="month" class="form-control" id="salaryMonth" onchange="loadSalaryRecords()">
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-primary mt-4" onclick="calculateSalary()">计算工资</button>
+                            <button class="btn btn-outline-primary mt-4 ms-2" onclick="exportSalary()">导出工资单</button>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="salaryTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>员工编号</th>
+                                    <th>姓名</th>
+                                    <th>职位</th>
+                                    <th>基本工资</th>
+                                    <th>工作时长</th>
+                                    <th>时薪工资</th>
+                                    <th>加班费</th>
+                                    <th>提成</th>
+                                    <th>补贴</th>
+                                    <th>总收入</th>
+                                    <th>社保扣款</th>
+                                    <th>公积金</th>
+                                    <th>个税</th>
+                                    <th>其他扣款</th>
+                                    <th>实发工资</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salaryBody">
+                                <!-- 薪资数据将通过JS动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 绩效评估模态框 -->
+    <div class="modal fade" id="performanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">绩效评估</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="performanceEmployee" class="form-label">选择员工</label>
+                            <select class="form-select" id="performanceEmployee" onchange="loadEmployeePerformance()">
+                                <!-- 员工列表将通过JS动态加载 -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="performanceHistory">
+                        <!-- 绩效历史将通过JS动态加载 -->
+                    </div>
+
+                    <hr>
+
+                    <button class="btn btn-primary" onclick="showAddPerformanceForm()">
+                        <i class="bi bi-plus"></i> 新增评估
+                    </button>
+
+                    <div id="addPerformanceForm" class="mt-3" style="display: none;">
+                        <form id="performanceForm">
+                            <input type="hidden" id="reviewEmployeeId">
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="reviewDate" class="form-label">评估日期</label>
+                                        <input type="date" class="form-control" id="reviewDate" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="reviewPeriod" class="form-label">评估周期</label>
+                                        <select class="form-select" id="reviewPeriod" required>
+                                            <option value="">请选择</option>
+                                            <option value="月度">月度</option>
+                                            <option value="季度">季度</option>
+                                            <option value="年度">年度</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">评分项目</label>
+
+                                <div class="mb-2">
+                                    <label>服务质量评分 (0-100)</label>
+                                    <input type="range" class="form-range" min="0" max="100" id="serviceQualityScore">
+                                    <div class="d-flex justify-content-between">
+                                        <span>0</span>
+                                        <span id="serviceQualityValue">50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label>客户反馈评分 (0-100)</label>
+                                    <input type="range" class="form-range" min="0" max="100" id="customerFeedbackScore">
+                                    <div class="d-flex justify-content-between">
+                                        <span>0</span>
+                                        <span id="customerFeedbackValue">50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label>考勤评分 (0-100)</label>
+                                    <input type="range" class="form-range" min="0" max="100" id="attendanceScore">
+                                    <div class="d-flex justify-content-between">
+                                        <span>0</span>
+                                        <span id="attendanceValue">50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label>工作效率评分 (0-100)</label>
+                                    <input type="range" class="form-range" min="0" max="100" id="efficiencyScore">
+                                    <div class="d-flex justify-content-between">
+                                        <span>0</span>
+                                        <span id="efficiencyValue">50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label>团队合作评分 (0-100)</label>
+                                    <input type="range" class="form-range" min="0" max="100" id="teamCooperationScore">
+                                    <div class="d-flex justify-content-between">
+                                        <span>0</span>
+                                        <span id="teamCooperationValue">50</span>
+                                        <span>100</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="strengths" class="form-label">优点</label>
+                                <textarea class="form-control" id="strengths" rows="2"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="areasForImprovement" class="form-label">待改进方面</label>
+                                <textarea class="form-control" id="areasForImprovement" rows="2"></textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="developmentPlan" class="form-label">发展计划</label>
+                                <textarea class="form-control" id="developmentPlan" rows="2"></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input type="checkbox" class="form-check-input" id="promotionRecommendation">
+                                        <label class="form-check-label" for="promotionRecommendation">推荐晋升</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="salaryAdjustmentPercentage" class="form-label">薪资调整百分比</label>
+                                        <input type="number" class="form-control" id="salaryAdjustmentPercentage" min="0" max="100" step="0.1">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="performanceNotes" class="form-label">备注</label>
+                                <textarea class="form-control" id="performanceNotes" rows="2"></textarea>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary" onclick="cancelPerformanceForm()">取消</button>
+                                <button type="button" class="btn btn-primary" onclick="savePerformanceReview()">保存评估</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 培训管理模态框 -->
+    <div class="modal fade" id="trainingModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">培训管理</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <button class="btn btn-primary mb-3" onclick="showAddTrainingForm()">
+                        <i class="bi bi-plus"></i> 新增培训
+                    </button>
+
+                    <div id="addTrainingForm" class="mb-4" style="display: none;">
+                        <form id="trainingForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trainingName" class="form-label">培训名称 *</label>
+                                        <input type="text" class="form-control" id="trainingName" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trainingType" class="form-label">培训类型</label>
+                                        <select class="form-select" id="trainingType">
+                                            <option value="岗前培训">岗前培训</option>
+                                            <option value="技能提升">技能提升</option>
+                                            <option value="安全培训">安全培训</option>
+                                            <option value="服务培训">服务培训</option>
+                                            <option value="管理培训">管理培训</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trainer" class="form-label">培训师</label>
+                                        <input type="text" class="form-control" id="trainer">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trainingDate" class="form-label">培训日期</label>
+                                        <input type="date" class="form-control" id="trainingDate">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="durationHours" class="form-label">培训时长 (小时)</label>
+                                        <input type="number" class="form-control" id="durationHours" min="0.5" step="0.5" value="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="trainingLocation" class="form-label">培训地点</label>
+                                        <input type="text" class="form-control" id="trainingLocation">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="trainingNotes" class="form-label">培训说明</label>
+                                <textarea class="form-control" id="trainingNotes" rows="2"></textarea>
+                            </div>
+
+                            <div class="text-end">
+                                <button type="button" class="btn btn-secondary" onclick="cancelTrainingForm()">取消</button>
+                                <button type="button" class="btn btn-primary" onclick="saveTraining()">保存培训</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover" id="trainingTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>培训名称</th>
+                                    <th>类型</th>
+                                    <th>培训师</th>
+                                    <th>日期</th>
+                                    <th>时长</th>
+                                    <th>地点</th>
+                                    <th>参与人数</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="trainingBody">
+                                <!-- 培训数据将通过JS动态加载 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 页面主体结构 -->
+    <div class="container-fluid">
+        <div class="row">
+            <!-- 侧边栏 -->
+            <div class="col-md-2 sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5>信息管理</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showProjectModal()">
+                        <i class="bi bi-building"></i> 切换项目
+                    </button>
+                </div>
+
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="index.html">
+                        <i class="bi bi-house-door"></i> 首页
+                    </a>
+                    <a class="nav-link" href="business_management.html">
+                        <i class="bi bi-shop"></i> 业务管理
+                    </a>
+                    <a class="nav-link active" href="personnel_management.html">
+                        <i class="bi bi-people"></i> 人员管理
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-graph-up"></i> 统计分析
+                    </a>
+                    <a class="nav-link" href="#">
+                        <i class="bi bi-gear"></i> 系统设置
+                    </a>
+                </nav>
+
+                <div class="mt-4">
+                    <div class="card">
+                        <div class="card-header">当前项目</div>
+                        <div class="card-body">
+                            <h6 id="currentProjectName">未选择项目</h6>
+                            <p class="text-muted small mb-0" id="currentProjectInfo">请先选择项目</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主内容区 -->
+            <div class="col-md-10 main-content">
+                <!-- 顶部导航 -->
+                <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4 rounded">
+                    <div class="container-fluid">
+                        <span class="navbar-brand">人员管理系统</span>
+                        <div class="d-flex">
+                            <button class="btn btn-primary me-2" onclick="showAddEmployeeModal()">
+                                <i class="bi bi-person-plus"></i> 新增员工
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="refreshData()">
+                                <i class="bi bi-arrow-clockwise"></i> 刷新
+                            </button>
+                        </div>
+                    </div>
+                </nav>
+
+                <!-- 统计卡片 -->
+                <div class="row mb-4" id="statsCards">
+                    <!-- 统计卡片将通过JS动态加载 -->
+                </div>
+
+                <!-- 选项卡 -->
+                <ul class="nav nav-tabs" id="personnelTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="employee-tab" data-bs-toggle="tab" data-bs-target="#employee-tab-pane" type="button" role="tab">
+                            员工管理
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="schedule-tab" data-bs-toggle="tab" data-bs-target="#schedule-tab-pane" type="button" role="tab">
+                            排班管理
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance-tab-pane" type="button" role="tab">
+                            考勤管理
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="salary-tab" data-bs-toggle="tab" data-bs-target="#salary-tab-pane" type="button" role="tab">
+                            薪资管理
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="performance-tab" data-bs-toggle="tab" data-bs-target="#performance-tab-pane" type="button" role="tab">
+                            绩效评估
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="training-tab" data-bs-toggle="tab" data-bs-target="#training-tab-pane" type="button" role="tab">
+                            培训管理
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- 选项卡内容 -->
+                <div class="tab-content" id="personnelTabContent">
+                    <!-- 员工管理 -->
+                    <div class="tab-pane fade show active" id="employee-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <select class="form-select" id="employeeFilter" onchange="filterEmployees()">
+                                        <option value="all">全部状态</option>
+                                        <option value="在职">在职</option>
+                                        <option value="离职">离职</option>
+                                        <option value="休假">休假</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <select class="form-select" id="positionFilter" onchange="filterEmployees()">
+                                        <option value="all">全部职位</option>
+                                        <option value="店长">店长</option>
+                                        <option value="技师">技师</option>
+                                        <option value="前台">前台</option>
+                                        <option value="清洁">清洁</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" class="form-control" id="searchEmployee" placeholder="搜索员工姓名或编号..." onkeyup="searchEmployees()">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover" id="employeeTable">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>员工信息</th>
+                                        <th>职位</th>
+                                        <th>入职日期</th>
+                                        <th>联系方式</th>
+                                        <th>技能</th>
+                                        <th>状态</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="employeeBody">
+                                    <!-- 员工数据将通过JS动态加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 排班管理 -->
+                    <div class="tab-pane fade" id="schedule-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="text-center mb-4">
+                            <h5>本周排班预览</h5>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="weeklyScheduleTable">
+                                <thead>
+                                    <tr>
+                                        <th>员工</th>
+                                        <th>周一</th>
+                                        <th>周二</th>
+                                        <th>周三</th>
+                                        <th>周四</th>
+                                        <th>周五</th>
+                                        <th>周六</th>
+                                        <th>周日</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="weeklyScheduleBody">
+                                    <!-- 周排班数据将通过JS动态加载 -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="text-center mt-4">
+                            <button class="btn btn-primary" onclick="showScheduleModal()">
+                                <i class="bi bi-calendar-plus"></i> 进入排班管理
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 考勤管理 -->
+                    <div class="tab-pane fade" id="attendance-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <h5>本月考勤概况</h5>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" onclick="showAttendanceModal()">
+                                    <i class="bi bi-clipboard-data"></i> 查看详细考勤
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row" id="attendanceStats">
+                            <!-- 考勤统计数据将通过JS动态加载 -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">近期考勤异常</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="attendanceAlertTable">
+                                        <thead>
+                                            <tr>
+                                                <th>日期</th>
+                                                <th>员工</th>
+                                                <th>班次</th>
+                                                <th>异常类型</th>
+                                                <th>详情</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="attendanceAlertBody">
+                                            <!-- 考勤异常数据将通过JS动态加载 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 薪资管理 -->
+                    <div class="tab-pane fade" id="salary-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <h5>薪资管理</h5>
+                                <p class="text-muted">查看和管理员工薪资信息</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" onclick="showSalaryModal()">
+                                    <i class="bi bi-cash"></i> 进入薪资管理
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row" id="salaryStats">
+                            <!-- 薪资统计数据将通过JS动态加载 -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">本月工资概览</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="salaryOverviewTable">
+                                        <thead>
+                                            <tr>
+                                                <th>职位</th>
+                                                <th>人数</th>
+                                                <th>平均薪资</th>
+                                                <th>最高薪资</th>
+                                                <th>最低薪资</th>
+                                                <th>薪资总额</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="salaryOverviewBody">
+                                            <!-- 薪资概览数据将通过JS动态加载 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 绩效评估 -->
+                    <div class="tab-pane fade" id="performance-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <h5>绩效评估</h5>
+                                <p class="text-muted">评估员工工作表现</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" onclick="showPerformanceModal()">
+                                    <i class="bi bi-star"></i> 进入绩效评估
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row" id="performanceStats">
+                            <!-- 绩效统计数据将通过JS动态加载 -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">近期绩效评估</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="performanceRecentTable">
+                                        <thead>
+                                            <tr>
+                                                <th>员工</th>
+                                                <th>评估日期</th>
+                                                <th>评估周期</th>
+                                                <th>总分</th>
+                                                <th>评级</th>
+                                                <th>评估人</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="performanceRecentBody">
+                                            <!-- 近期绩效数据将通过JS动态加载 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 培训管理 -->
+                    <div class="tab-pane fade" id="training-tab-pane" role="tabpanel" tabindex="0">
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <h5>培训管理</h5>
+                                <p class="text-muted">组织和记录员工培训活动</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <button class="btn btn-primary" onclick="showTrainingModal()">
+                                    <i class="bi bi-journal-text"></i> 进入培训管理
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="row" id="trainingStats">
+                            <!-- 培训统计数据将通过JS动态加载 -->
+                        </div>
+
+                        <div class="card mt-4">
+                            <div class="card-header">近期培训计划</div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm" id="trainingPlanTable">
+                                        <thead>
+                                            <tr>
+                                                <th>培训名称</th>
+                                                <th>类型</th>
+                                                <th>培训日期</th>
+                                                <th>培训师</th>
+                                                <th>预计参与人数</th>
+                                                <th>状态</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="trainingPlanBody">
+                                            <!-- 培训计划数据将通过JS动态加载 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全局变量
+        let currentProjectId = null;
+        let currentProjectName = '';
+        let employees = [];
+        let schedules = [];
+        let attendanceData = [];
+        let salaryRecords = [];
+        let performanceReviews = [];
+        let trainingRecords = [];
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProjects();
+            setupEventListeners();
+
+            // 如果没有项目，显示项目选择模态框
+            if (!currentProjectId) {
+                setTimeout(() => {
+                    showProjectModal();
+                }, 500);
+            }
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 评分滑块事件
+            document.getElementById('serviceQualityScore').addEventListener('input', function() {
+                document.getElementById('serviceQualityValue').textContent = this.value;
+            });
+            document.getElementById('customerFeedbackScore').addEventListener('input', function() {
+                document.getElementById('customerFeedbackValue').textContent = this.value;
+            });
+            document.getElementById('attendanceScore').addEventListener('input', function() {
+                document.getElementById('attendanceValue').textContent = this.value;
+            });
+            document.getElementById('efficiencyScore').addEventListener('input', function() {
+                document.getElementById('efficiencyValue').textContent = this.value;
+            });
+            document.getElementById('teamCooperationScore').addEventListener('input', function() {
+                document.getElementById('teamCooperationValue').textContent = this.value;
+            });
+
+            // 初始化日期输入框
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('employmentDate').value = today;
+            document.getElementById('birthDate').max = today;
+
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('scheduleDate').value = tomorrow.toISOString().split('T')[0];
+
+            const now = new Date();
+            const currentMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            document.getElementById('salaryMonth').value = currentMonth;
+
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            document.getElementById('attendanceStartDate').value = oneWeekAgo.toISOString().split('T')[0];
+            document.getElementById('attendanceEndDate').value = today;
+        }
+
+        // 加载项目列表
+        function loadProjects() {
+            fetch('/api/projects')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        displayProjects(data);
+
+                        // 如果之前有选择项目，恢复选择
+                        const savedProjectId = localStorage.getItem('selectedProjectId');
+                        if (savedProjectId) {
+                            const project = data.find(p => p.id == savedProjectId);
+                            if (project) {
+                                selectProject(project.id, project.name);
+                            }
+                        }
+                    } else {
+                        document.getElementById('projectList').innerHTML =
+                            '<div class="col-12 text-center"><p>暂无项目，请先创建项目</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('加载项目失败:', error);
+                    showAlert('加载项目失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示项目列表
+        function displayProjects(projects) {
+            const projectList = document.getElementById('projectList');
+            projectList.innerHTML = '';
+
+            projects.forEach(project => {
+                const projectCard = `
+                    <div class="col-md-4 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <h5 class="card-title">${project.name}</h5>
+                                <p class="card-text text-muted small">${project.description || '暂无描述'}</p>
+                                <p class="card-text">
+                                    <small class="text-muted">
+                                        创建时间: ${new Date(project.created_at).toLocaleDateString()}
+                                    </small>
+                                </p>
+                                <button class="btn btn-primary btn-sm" onclick="selectProject(${project.id}, '${project.name}')">
+                                    选择项目
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                projectList.innerHTML += projectCard;
+            });
+        }
+
+        // 选择项目
+        function selectProject(projectId, projectName) {
+            currentProjectId = projectId;
+            currentProjectName = projectName;
+
+            // 保存到本地存储
+            localStorage.setItem('selectedProjectId', projectId);
+
+            // 更新UI显示
+            document.getElementById('currentProjectName').textContent = projectName;
+            document.getElementById('projectId').value = projectId;
+
+            // 隐藏项目选择模态框
+            const projectModal = bootstrap.Modal.getInstance(document.getElementById('projectModal'));
+            if (projectModal) {
+                projectModal.hide();
+            }
+
+            // 加载数据
+            refreshData();
+            showAlert(`已切换到项目: ${projectName}`, 'success');
+        }
+
+        // 显示项目选择模态框
+        function showProjectModal() {
+            const modal = new bootstrap.Modal(document.getElementById('projectModal'));
+            modal.show();
+        }
+
+        // 刷新数据
+        function refreshData() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            // 加载统计数据
+            loadPersonnelStats();
+
+            // 加载员工数据
+            loadEmployees();
+
+            // 加载排班数据
+            loadWeeklySchedule();
+
+            // 加载考勤统计
+            loadAttendanceStats();
+
+            // 加载薪资统计
+            loadSalaryStats();
+
+            // 加载绩效统计
+            loadPerformanceStats();
+
+            // 加载培训统计
+            loadTrainingStats();
+        }
+
+        // 加载人员统计数据
+        function loadPersonnelStats() {
+            fetch(`/api/personnel_stats?project_id=${currentProjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayPersonnelStats(data);
+                })
+                .catch(error => {
+                    console.error('加载统计数据失败:', error);
+                });
+        }
+
+        // 显示人员统计数据
+        function displayPersonnelStats(stats) {
+            const statsCards = document.getElementById('statsCards');
+
+            if (!stats.employees) return;
+
+            const totalEmployees = stats.employees.total_employees || 0;
+            const activeEmployees = stats.employees.active_employees || 0;
+            const resignedEmployees = stats.employees.resigned_employees || 0;
+            const onLeaveEmployees = stats.employees.on_leave_employees || 0;
+
+            statsCards.innerHTML = `
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e3f2fd;">
+                        <div class="number">${totalEmployees}</div>
+                        <div class="label">总员工数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e8f5e9;">
+                        <div class="number">${activeEmployees}</div>
+                        <div class="label">在职员工</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #fff3e0;">
+                        <div class="number">${onLeaveEmployees}</div>
+                        <div class="label">休假员工</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #fce4ec;">
+                        <div class="number">${resignedEmployees}</div>
+                        <div class="label">离职员工</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载员工数据
+        function loadEmployees() {
+            fetch(`/api/employees?project_id=${currentProjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    employees = data;
+                    displayEmployees(data);
+                })
+                .catch(error => {
+                    console.error('加载员工数据失败:', error);
+                    showAlert('加载员工数据失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示员工列表
+        function displayEmployees(employees) {
+            const employeeBody = document.getElementById('employeeBody');
+            employeeBody.innerHTML = '';
+
+            if (employees.length === 0) {
+                employeeBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">
+                            暂无员工数据，请先添加员工
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            employees.forEach((employee, index) => {
+                const avatarText = employee.name.substring(0, 2);
+                const statusBadge = getStatusBadge(employee.status);
+                const skillsHtml = getSkillsHtml(employee.skills || []);
+
+                const row = `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="employee-avatar">${avatarText}</div>
+                                <div>
+                                    <div class="fw-bold">${employee.name}</div>
+                                    <small class="text-muted">${employee.employee_number}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${employee.position}</td>
+                        <td>${formatDate(employee.employment_date)}</td>
+                        <td>
+                            <div>${employee.phone || '未填写'}</div>
+                            <small class="text-muted">${employee.emergency_contact || '无紧急联系人'}</small>
+                        </td>
+                        <td>${skillsHtml}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewEmployee(${employee.id})" title="查看">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" onclick="editEmployee(${employee.id})" title="编辑">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteEmployee(${employee.id})" title="删除">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                employeeBody.innerHTML += row;
+            });
+        }
+
+        // 获取状态徽章
+        function getStatusBadge(status) {
+            const badges = {
+                '在职': '<span class="badge badge-status badge-active">在职</span>',
+                '离职': '<span class="badge badge-status badge-inactive">离职</span>',
+                '休假': '<span class="badge badge-status badge-leave">休假</span>'
+            };
+            return badges[status] || '<span class="badge badge-secondary">未知</span>';
+        }
+
+        // 获取技能HTML
+        function getSkillsHtml(skills) {
+            if (!skills || skills.length === 0) {
+                return '<span class="text-muted">无技能</span>';
+            }
+
+            let html = '';
+            skills.slice(0, 3).forEach(skill => {
+                html += `<span class="badge bg-info skill-badge">${skill.skill_type}</span> `;
+            });
+
+            if (skills.length > 3) {
+                html += `<span class="badge bg-secondary skill-badge">+${skills.length - 3}</span>`;
+            }
+
+            return html;
+        }
+
+        // 过滤员工
+        function filterEmployees() {
+            const statusFilter = document.getElementById('employeeFilter').value;
+            const positionFilter = document.getElementById('positionFilter').value;
+
+            let filtered = employees;
+
+            if (statusFilter !== 'all') {
+                filtered = filtered.filter(emp => emp.status === statusFilter);
+            }
+
+            if (positionFilter !== 'all') {
+                filtered = filtered.filter(emp => emp.position === positionFilter);
+            }
+
+            displayEmployees(filtered);
+        }
+
+        // 搜索员工
+        function searchEmployees() {
+            const searchTerm = document.getElementById('searchEmployee').value.toLowerCase();
+
+            if (!searchTerm) {
+                displayEmployees(employees);
+                return;
+            }
+
+            const filtered = employees.filter(emp =>
+                emp.name.toLowerCase().includes(searchTerm) ||
+                emp.employee_number.toLowerCase().includes(searchTerm)
+            );
+
+            displayEmployees(filtered);
+        }
+
+        // 查看员工详情
+        function viewEmployee(employeeId) {
+            fetch(`/api/employee_summary?employee_id=${employeeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayEmployeeDetail(data);
+                    const modal = new bootstrap.Modal(document.getElementById('employeeDetailModal'));
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('加载员工详情失败:', error);
+                    showAlert('加载员工详情失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示员工详情
+        function displayEmployeeDetail(employee) {
+            const detailContent = document.getElementById('employeeDetailContent');
+
+            const avatarText = employee.name.substring(0, 2);
+            const statusBadge = getStatusBadge(employee.status);
+
+            // 构建技能表格
+            let skillsTable = '';
+            if (employee.skills && employee.skills.length > 0) {
+                skillsTable = `
+                    <table class="table table-sm mt-3">
+                        <thead>
+                            <tr>
+                                <th>技能类型</th>
+                                <th>等级</th>
+                                <th>证书</th>
+                                <th>从业年限</th>
+                                <th>评分</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${employee.skills.map(skill => `
+                                <tr>
+                                    <td>${skill.skill_type}</td>
+                                    <td>${skill.skill_level || '-'}</td>
+                                    <td>${skill.certification || '-'}</td>
+                                    <td>${skill.experience_years || 0}年</td>
+                                    <td>${skill.rating || 0}/5</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                `;
+            }
+
+            // 构建绩效信息
+            let performanceInfo = '';
+            if (employee.latest_performance) {
+                const perf = employee.latest_performance;
+                performanceInfo = `
+                    <div class="card mt-3">
+                        <div class="card-header">最近绩效评估</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>评估日期:</strong> ${formatDate(perf.review_date)}</p>
+                                    <p><strong>评估周期:</strong> ${perf.review_period}</p>
+                                    <p><strong>总分:</strong> ${perf.total_score}</p>
+                                    <p><strong>评级:</strong> ${perf.rating_level}</p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>服务质量:</strong> ${perf.service_quality_score}</p>
+                                    <p><strong>客户反馈:</strong> ${perf.customer_feedback_score}</p>
+                                    <p><strong>考勤:</strong> ${perf.attendance_score}</p>
+                                    <p><strong>工作效率:</strong> ${perf.efficiency_score}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 构建考勤摘要
+            let attendanceInfo = '';
+            if (employee.attendance_summary) {
+                const att = employee.attendance_summary;
+                attendanceInfo = `
+                    <div class="card mt-3">
+                        <div class="card-header">本月考勤摘要</div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>排班天数:</strong> ${att.scheduled_days || 0}</p>
+                                    <p><strong>出勤天数:</strong> ${att.attendance_days || 0}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>迟到:</strong> ${att.late_days || 0}次</p>
+                                    <p><strong>早退:</strong> ${att.early_leave_days || 0}次</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p><strong>平均工时:</strong> ${att.avg_work_hours ? att.avg_work_hours.toFixed(1) : 0}小时</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            detailContent.innerHTML = `
+                <div class="row">
+                    <div class="col-md-3 text-center">
+                        <div class="employee-avatar" style="width: 80px; height: 80px; font-size: 24px; margin: 0 auto 15px;">${avatarText}</div>
+                        <h5>${employee.name}</h5>
+                        <p>${employee.position}</p>
+                        <div>${statusBadge}</div>
+                    </div>
+                    <div class="col-md-9">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>员工编号:</strong> ${employee.employee_number}</p>
+                                <p><strong>入职日期:</strong> ${formatDate(employee.employment_date)}</p>
+                                <p><strong>性别:</strong> ${employee.gender || '-'}</p>
+                                <p><strong>出生日期:</strong> ${formatDate(employee.birth_date)}</p>
+                                <p><strong>身份证号:</strong> ${employee.id_card || '-'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>联系电话:</strong> ${employee.phone || '-'}</p>
+                                <p><strong>紧急联系人:</strong> ${employee.emergency_contact || '-'}</p>
+                                <p><strong>紧急电话:</strong> ${employee.emergency_phone || '-'}</p>
+                                <p><strong>住址:</strong> ${employee.address || '-'}</p>
+                                <p><strong>备注:</strong> ${employee.notes || '-'}</p>
+                            </div>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6>技能信息</h6>
+                            ${employee.skills && employee.skills.length > 0 ? skillsTable : '<p class="text-muted">暂无技能信息</p>'}
+                        </div>
+
+                        ${performanceInfo}
+                        ${attendanceInfo}
+                    </div>
+                </div>
+            `;
+
+            // 设置编辑按钮事件
+            document.getElementById('editEmployeeBtn').onclick = function() {
+                editEmployee(employee.id);
+                bootstrap.Modal.getInstance(document.getElementById('employeeDetailModal')).hide();
+            };
+        }
+
+        // 显示新增员工模态框
+        function showAddEmployeeModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            document.getElementById('employeeModalTitle').textContent = '新增员工';
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('skillsContainer').innerHTML = '';
+
+            // 清空员工编号（后端会自动生成）
+            document.getElementById('employeeNumber').value = '';
+
+            // 设置默认入职日期为今天
+            document.getElementById('employmentDate').value = new Date().toISOString().split('T')[0];
+
+            // 隐藏技能部分，可在编辑时添加
+            document.getElementById('skillsSection').style.display = 'none';
+
+            const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+            modal.show();
+        }
+
+        // 编辑员工
+        function editEmployee(employeeId) {
+            fetch(`/api/employee_details?employee_id=${employeeId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data) {
+                        populateEmployeeForm(data);
+
+                        document.getElementById('employeeModalTitle').textContent = '编辑员工';
+                        const modal = new bootstrap.Modal(document.getElementById('employeeModal'));
+                        modal.show();
+                    }
+                })
+                .catch(error => {
+                    console.error('加载员工信息失败:', error);
+                    showAlert('加载员工信息失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 填充员工表单
+        function populateEmployeeForm(employee) {
+            document.getElementById('employeeId').value = employee.id;
+            document.getElementById('employeeName').value = employee.name || '';
+            document.getElementById('employeeNumber').value = employee.employee_number || '';
+            document.getElementById('position').value = employee.position || '';
+            document.getElementById('gender').value = employee.gender || '';
+            document.getElementById('birthDate').value = formatDateForInput(employee.birth_date);
+            document.getElementById('idCard').value = employee.id_card || '';
+            document.getElementById('phone').value = employee.phone || '';
+            document.getElementById('emergencyContact').value = employee.emergency_contact || '';
+            document.getElementById('emergencyPhone').value = employee.emergency_phone || '';
+            document.getElementById('address').value = employee.address || '';
+            document.getElementById('employmentDate').value = formatDateForInput(employee.employment_date);
+            document.getElementById('notes').value = employee.notes || '';
+
+            // 填充技能信息
+            const skillsContainer = document.getElementById('skillsContainer');
+            skillsContainer.innerHTML = '';
+
+            if (employee.skills && employee.skills.length > 0) {
+                employee.skills.forEach((skill, index) => {
+                    addSkillField(index, skill);
+                });
+            }
+
+            // 显示技能部分
+            document.getElementById('skillsSection').style.display = 'block';
+        }
+
+        // 添加技能字段
+        function addSkillField(index = null, skill = null) {
+            const skillsContainer = document.getElementById('skillsContainer');
+            const skillIndex = index !== null ? index : skillsContainer.children.length;
+
+            const skillField = `
+                <div class="card mb-2" id="skill-${skillIndex}">
+                    <div class="card-body p-3">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-sm"
+                                       placeholder="技能类型"
+                                       value="${skill ? skill.skill_type : ''}"
+                                       id="skill_type_${skillIndex}">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select form-select-sm" id="skill_level_${skillIndex}">
+                                    <option value="">选择等级</option>
+                                    <option value="初级" ${skill && skill.skill_level === '初级' ? 'selected' : ''}>初级</option>
+                                    <option value="中级" ${skill && skill.skill_level === '中级' ? 'selected' : ''}>中级</option>
+                                    <option value="高级" ${skill && skill.skill_level === '高级' ? 'selected' : ''}>高级</option>
+                                    <option value="技师" ${skill && skill.skill_level === '技师' ? 'selected' : ''}>技师</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control form-control-sm"
+                                       placeholder="证书名称"
+                                       value="${skill ? skill.certification : ''}"
+                                       id="certification_${skillIndex}">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-sm btn-outline-danger"
+                                        onclick="removeSkillField(${skillIndex})">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            skillsContainer.innerHTML += skillField;
+        }
+
+        // 移除技能字段
+        function removeSkillField(index) {
+            const skillField = document.getElementById(`skill-${index}`);
+            if (skillField) {
+                skillField.remove();
+            }
+        }
+
+        // 保存员工
+        function saveEmployee() {
+            debugger;
+            const employeeId = document.getElementById('employeeId').value;
+            const employeeNumber = document.getElementById('employeeNumber').value;
+            const employeeName = document.getElementById('employeeName').value;
+            const position = document.getElementById('position').value;
+
+            // 基本验证
+            if (!employeeName.trim()) {
+                showAlert('请填写员工姓名', 'warning');
+                return;
+            }
+
+            if (!position) {
+                showAlert('请选择职位', 'warning');
+                return;
+            }
+
+            // 收集员工数据
+            const employeeData = {
+                project_id: currentProjectId,
+                name: employeeName,
+                employee_number: employeeNumber,
+                position: position,
+                gender: document.getElementById('gender').value,
+                birth_date: document.getElementById('birthDate').value || null,
+                id_card: document.getElementById('idCard').value,
+                phone: document.getElementById('phone').value,
+                emergency_contact: document.getElementById('emergencyContact').value,
+                emergency_phone: document.getElementById('emergencyPhone').value,
+                address: document.getElementById('address').value,
+                employment_date: document.getElementById('employmentDate').value,
+                notes: document.getElementById('notes').value
+            };
+
+            // 收集技能数据
+            const skillsContainer = document.getElementById('skillsContainer');
+            const skills = [];
+
+            for (let i = 0; i < skillsContainer.children.length; i++) {
+                const skillType = document.getElementById(`skill_type_${i}`)?.value;
+                if (skillType && skillType.trim()) {
+                    skills.push({
+                        skill_type: skillType.trim(),
+                        skill_level: document.getElementById(`skill_level_${i}`)?.value,
+                        certification: document.getElementById(`certification_${i}`)?.value
+                    });
+                }
+            }
+
+            // 确定API端点和方法（使用RESTful风格）
+            let url, method;
+            let requestBody = {};
+
+            if (employeeId) {
+                // 更新现有员工
+                url = `/api/employee/${employeeId}`;
+                method = 'PUT';
+                // 更新时不需要project_id
+                delete employeeData.project_id;
+                // 更新时也不需要employee_number，除非要修改
+                delete employeeData.employee_number;
+                requestBody = employeeData;
+
+                // 如果有技能数据，添加技能字段
+                if (skills.length > 0) {
+                    requestBody.skills = skills;
+                }
+            } else {
+                // 添加新员工
+                url = `/api/employees?project_id=${currentProjectId}`;
+                method = 'POST';
+                requestBody = employeeData;
+
+                // 如果有技能数据，添加技能字段
+                if (skills.length > 0) {
+                    requestBody.skills = skills;
+                }
+            }
+
+            // 发送请求
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
+            })
+            .then(response => {
+                // 先检查响应状态
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw new Error(errData.error || `HTTP错误 ${response.status}`);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    showAlert(employeeId ? '员工信息更新成功' : '员工添加成功', 'success');
+
+                    // 关闭模态框
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('employeeModal'));
+                    modal.hide();
+
+                    // 刷新数据
+                    refreshData();
+
+                    // 清空表单（可选）
+                    setTimeout(() => {
+                        if (employeeId) {
+                            // 如果是更新，关闭后保持当前员工选择
+                        } else {
+                            // 如果是新增，清空表单以便下次添加
+                            document.getElementById('employeeForm').reset();
+                            // 清空技能容器
+                            const skillsContainer = document.getElementById('skillsContainer');
+                            skillsContainer.innerHTML = '';
+                            // 重置员工ID
+                            document.getElementById('employeeId').value = '';
+                            document.getElementById('employeeNumber').value = '';
+                        }
+                    }, 300);
+                } else {
+                    showAlert(data.error || data.message || '操作失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('保存员工失败:', error);
+
+                // 更详细的错误处理
+                let errorMessage = '保存员工失败';
+                if (error.message.includes('HTTP错误')) {
+                    if (error.message.includes('404')) {
+                        errorMessage = 'API端点未找到，请检查服务器配置';
+                    } else if (error.message.includes('400')) {
+                        errorMessage = '请求参数错误，请检查填写的信息';
+                    } else if (error.message.includes('500')) {
+                        errorMessage = '服务器内部错误，请稍后重试';
+                    } else {
+                        errorMessage = error.message;
+                    }
+                } else {
+                    errorMessage = error.message;
+                }
+
+                showAlert(errorMessage, 'danger');
+
+                // 如果是网络错误，提供重试建议
+                if (error.message.includes('Failed to fetch')) {
+                    console.log('网络连接失败，请检查：');
+                    console.log('1. 服务器是否正在运行');
+                    console.log('2. API端点是否正确');
+                    console.log('3. 网络连接是否正常');
+                }
+            });
+        }
+
+        // 删除员工
+        function deleteEmployee(employeeId) {
+            if (!confirm('确定要删除此员工吗？此操作不可恢复。')) {
+                return;
+            }
+
+            fetch(`/api/delete_employee?employee_id=${employeeId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('员工删除成功', 'success');
+                    refreshData();
+                } else {
+                    showAlert(data.message || '删除失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('删除员工失败:', error);
+                showAlert('删除员工失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 加载周排班数据
+        function loadWeeklySchedule() {
+            if (!currentProjectId) return;
+
+            const today = new Date();
+            const monday = new Date(today);
+            monday.setDate(today.getDate() - today.getDay() + 1);
+
+            const weekDates = [];
+            for (let i = 0; i < 7; i++) {
+                const date = new Date(monday);
+                date.setDate(monday.getDate() + i);
+                weekDates.push(date.toISOString().split('T')[0]);
+            }
+
+            fetch(`/api/project_schedule?project_id=${currentProjectId}&schedule_date=${weekDates[0]}`)
+                .then(response => response.json())
+                .then(data => {
+                    schedules = data;
+                    displayWeeklySchedule(data, weekDates);
+                })
+                .catch(error => {
+                    console.error('加载排班数据失败:', error);
+                });
+        }
+
+        // 显示周排班
+        function displayWeeklySchedule(scheduleData, weekDates) {
+            const weeklyScheduleBody = document.getElementById('weeklyScheduleBody');
+            weeklyScheduleBody.innerHTML = '';
+
+            // 按员工分组排班数据
+            const employeeSchedules = {};
+
+            scheduleData.forEach(schedule => {
+                if (!employeeSchedules[schedule.employee_id]) {
+                    employeeSchedules[schedule.employee_id] = {
+                        name: schedule.employee_name,
+                        position: schedule.position,
+                        schedules: {}
+                    };
+                }
+
+                const scheduleDate = schedule.schedule_date;
+                employeeSchedules[schedule.employee_id].schedules[scheduleDate] = {
+                    shift_type: schedule.shift_type,
+                    status: schedule.status
+                };
+            });
+
+            // 显示表格
+            Object.values(employeeSchedules).forEach(employee => {
+                let row = `<tr>
+                    <td>
+                        <div class="fw-bold">${employee.name}</div>
+                        <small class="text-muted">${employee.position}</small>
+                    </td>`;
+
+                weekDates.forEach(date => {
+                    const schedule = employee.schedules[date];
+                    if (schedule) {
+                        const badgeClass = schedule.status === '已安排' ? 'schedule-shift' : 'schedule-off';
+                        row += `<td><div class="schedule-cell ${badgeClass}">${schedule.shift_type}</div></td>`;
+                    } else {
+                        row += `<td><div class="schedule-cell schedule-off">休息</div></td>`;
+                    }
+                });
+
+                row += '</tr>';
+                weeklyScheduleBody.innerHTML += row;
+            });
+        }
+
+        // 显示排班管理模态框
+        function showScheduleModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            loadSchedule();
+            loadEmployeeList();
+
+            const modal = new bootstrap.Modal(document.getElementById('scheduleModal'));
+            modal.show();
+        }
+
+        // 加载排班
+        function loadSchedule() {
+            const scheduleDate = document.getElementById('scheduleDate').value;
+
+            fetch(`/api/project_schedule?project_id=${currentProjectId}&schedule_date=${scheduleDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySchedule(data);
+                })
+                .catch(error => {
+                    console.error('加载排班失败:', error);
+                    showAlert('加载排班失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示排班
+        function displaySchedule(scheduleData) {
+            const scheduleBody = document.getElementById('scheduleBody');
+            scheduleBody.innerHTML = '';
+
+            // 按员工分组
+            const employeeSchedules = {};
+
+            scheduleData.forEach(schedule => {
+                if (!employeeSchedules[schedule.employee_id]) {
+                    employeeSchedules[schedule.employee_id] = {
+                        id: schedule.employee_id,
+                        name: schedule.employee_name,
+                        position: schedule.position,
+                        shifts: {}
+                    };
+                }
+
+                employeeSchedules[schedule.employee_id].shifts[schedule.shift_type] = {
+                    id: schedule.id,
+                    status: schedule.status,
+                    start_time: schedule.start_time,
+                    end_time: schedule.end_time
+                };
+            });
+
+            // 显示表格
+            Object.values(employeeSchedules).forEach(employee => {
+                const shifts = employee.shifts;
+                const shiftTypes = ['早班', '中班', '晚班', '全天'];
+
+                shiftTypes.forEach(shiftType => {
+                    const shift = shifts[shiftType];
+                    if (shift) {
+                        const row = `
+                            <tr>
+                                <td>${employee.name}</td>
+                                <td>${shiftType === '早班' ? '✓' : ''}</td>
+                                <td>${shiftType === '中班' ? '✓' : ''}</td>
+                                <td>${shiftType === '晚班' ? '✓' : ''}</td>
+                                <td>${shiftType === '全天' ? '✓' : ''}</td>
+                                <td>
+                                    <span class="badge ${shift.status === '已安排' ? 'bg-primary' : 'bg-secondary'}">
+                                        ${shift.status}
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteSchedule(${shift.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        scheduleBody.innerHTML += row;
+                    }
+                });
+            });
+        }
+
+        // 加载员工列表
+        function loadEmployeeList() {
+            fetch(`/api/employees?project_id=${currentProjectId}&status=在职`)
+                .then(response => response.json())
+                .then(data => {
+                    displayEmployeeList(data);
+                })
+                .catch(error => {
+                    console.error('加载员工列表失败:', error);
+                });
+        }
+
+        // 显示员工列表
+        function displayEmployeeList(employees) {
+            const employeeList = document.getElementById('employeeList');
+            employeeList.innerHTML = '';
+
+            employees.forEach(employee => {
+                const item = `
+                    <li class="list-group-item">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox"
+                                   value="${employee.id}" id="employee_${employee.id}">
+                            <label class="form-check-label" for="employee_${employee.id}">
+                                ${employee.name} (${employee.position})
+                            </label>
+                        </div>
+                    </li>
+                `;
+                employeeList.innerHTML += item;
+            });
+        }
+
+        // 新增排班
+        function addSchedule() {
+            const scheduleDate = document.getElementById('scheduleDate').value;
+            const selectedEmployees = [];
+
+            // 获取选中的员工
+            const checkboxes = document.querySelectorAll('#employeeList input[type="checkbox"]:checked');
+            checkboxes.forEach(checkbox => {
+                selectedEmployees.push(checkbox.value);
+            });
+
+            if (selectedEmployees.length === 0) {
+                showAlert('请至少选择一名员工', 'warning');
+                return;
+            }
+
+            // 这里可以添加更复杂的排班逻辑
+            // 暂时简单地为每个员工安排早班
+            selectedEmployees.forEach(employeeId => {
+                const scheduleData = {
+                    project_id: currentProjectId,
+                    employee_id: employeeId,
+                    schedule_date: scheduleDate,
+                    shift_type: '早班',
+                    start_time: '09:00',
+                    end_time: '17:00',
+                    rest_hours: 1
+                };
+
+                fetch('/api/create_schedule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(scheduleData)
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showAlert('排班添加成功', 'success');
+                        loadSchedule();
+                    }
+                })
+                .catch(error => {
+                    console.error('添加排班失败:', error);
+                });
+            });
+        }
+
+        // 删除排班
+        function deleteSchedule(scheduleId) {
+            if (!confirm('确定要删除此排班吗？')) {
+                return;
+            }
+
+            fetch(`/api/delete_schedule?schedule_id=${scheduleId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('排班删除成功', 'success');
+                    loadSchedule();
+                }
+            })
+            .catch(error => {
+                console.error('删除排班失败:', error);
+                showAlert('删除排班失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 日期导航
+        function previousDay() {
+            const dateInput = document.getElementById('scheduleDate');
+            const date = new Date(dateInput.value);
+            date.setDate(date.getDate() - 1);
+            dateInput.value = date.toISOString().split('T')[0];
+            loadSchedule();
+        }
+
+        function today() {
+            const dateInput = document.getElementById('scheduleDate');
+            dateInput.value = new Date().toISOString().split('T')[0];
+            loadSchedule();
+        }
+
+        function nextDay() {
+            const dateInput = document.getElementById('scheduleDate');
+            const date = new Date(dateInput.value);
+            date.setDate(date.getDate() + 1);
+            dateInput.value = date.toISOString().split('T')[0];
+            loadSchedule();
+        }
+
+        // 显示考勤管理模态框
+        function showAttendanceModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById('attendanceModal'));
+            modal.show();
+        }
+
+        // 加载考勤报表
+        function loadAttendanceReport() {
+            const startDate = document.getElementById('attendanceStartDate').value;
+            const endDate = document.getElementById('attendanceEndDate').value;
+
+            if (!startDate || !endDate) {
+                showAlert('请选择开始和结束日期', 'warning');
+                return;
+            }
+
+            fetch(`/api/attendance_report?project_id=${currentProjectId}&start_date=${startDate}&end_date=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayAttendanceReport(data);
+                })
+                .catch(error => {
+                    console.error('加载考勤报表失败:', error);
+                    showAlert('加载考勤报表失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示考勤报表
+        function displayAttendanceReport(data) {
+            const attendanceBody = document.getElementById('attendanceBody');
+            attendanceBody.innerHTML = '';
+
+            if (data.length === 0) {
+                attendanceBody.innerHTML = `
+                    <tr>
+                        <td colspan="11" class="text-center text-muted">暂无考勤数据</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(record => {
+                const row = `
+                    <tr>
+                        <td>${record.employee_number}</td>
+                        <td>${record.employee_name}</td>
+                        <td>${record.position}</td>
+                        <td>${record.scheduled_days}</td>
+                        <td>${record.attendance_days}</td>
+                        <td class="${record.late_days > 0 ? 'text-warning fw-bold' : ''}">${record.late_days}</td>
+                        <td class="${record.early_leave_days > 0 ? 'text-warning fw-bold' : ''}">${record.early_leave_days}</td>
+                        <td class="${record.absent_days > 0 ? 'text-danger fw-bold' : ''}">${record.absent_days}</td>
+                        <td>${record.leave_days}</td>
+                        <td>${record.total_hours ? record.total_hours.toFixed(1) : 0}小时</td>
+                        <td>
+                            <span class="badge ${record.attendance_rate >= 95 ? 'bg-success' : record.attendance_rate >= 90 ? 'bg-warning' : 'bg-danger'}">
+                                ${record.attendance_rate ? record.attendance_rate.toFixed(1) : 0}%
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                attendanceBody.innerHTML += row;
+            });
+        }
+
+        // 导出考勤报表
+        function exportAttendance() {
+            showAlert('导出功能正在开发中', 'info');
+        }
+
+        // 加载考勤统计
+        function loadAttendanceStats() {
+            if (!currentProjectId) return;
+
+            const now = new Date();
+            const startDate = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+
+            fetch(`/api/attendance_report?project_id=${currentProjectId}&start_date=${startDate}&end_date=${endDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayAttendanceStats(data);
+                })
+                .catch(error => {
+                    console.error('加载考勤统计失败:', error);
+                });
+        }
+
+        // 显示考勤统计
+        function displayAttendanceStats(data) {
+            const attendanceStats = document.getElementById('attendanceStats');
+
+            if (!data || data.length === 0) {
+                attendanceStats.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-muted">暂无考勤数据</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 计算总体统计
+            let totalScheduled = 0;
+            let totalAttendance = 0;
+            let totalLate = 0;
+            let totalEarlyLeave = 0;
+            let totalAbsent = 0;
+
+            data.forEach(record => {
+                totalScheduled += record.scheduled_days || 0;
+                totalAttendance += record.attendance_days || 0;
+                totalLate += record.late_days || 0;
+                totalEarlyLeave += record.early_leave_days || 0;
+                totalAbsent += record.absent_days || 0;
+            });
+
+            const attendanceRate = totalScheduled > 0 ? (totalAttendance / totalScheduled * 100).toFixed(1) : 0;
+
+            attendanceStats.innerHTML = `
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e3f2fd;">
+                        <div class="number">${attendanceRate}%</div>
+                        <div class="label">出勤率</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #f3e5f5;">
+                        <div class="number">${totalLate}</div>
+                        <div class="label">迟到次数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e8f5e9;">
+                        <div class="number">${totalEarlyLeave}</div>
+                        <div class="label">早退次数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #ffebee;">
+                        <div class="number">${totalAbsent}</div>
+                        <div class="label">旷工次数</div>
+                    </div>
+                </div>
+            `;
+
+            // 更新考勤异常表格
+            updateAttendanceAlerts(data);
+        }
+
+        // 更新考勤异常
+        function updateAttendanceAlerts(data) {
+            const attendanceAlertBody = document.getElementById('attendanceAlertBody');
+            attendanceAlertBody.innerHTML = '';
+
+            const alerts = [];
+
+            data.forEach(record => {
+                if (record.late_days > 0) {
+                    alerts.push({
+                        type: '迟到',
+                        count: record.late_days,
+                        employee: record.employee_name
+                    });
+                }
+                if (record.early_leave_days > 0) {
+                    alerts.push({
+                        type: '早退',
+                        count: record.early_leave_days,
+                        employee: record.employee_name
+                    });
+                }
+                if (record.absent_days > 0) {
+                    alerts.push({
+                        type: '旷工',
+                        count: record.absent_days,
+                        employee: record.employee_name
+                    });
+                }
+            });
+
+            if (alerts.length === 0) {
+                attendanceAlertBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">本月无考勤异常</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // 显示前5条异常
+            alerts.slice(0, 5).forEach(alert => {
+                const today = new Date().toISOString().split('T')[0];
+                const row = `
+                    <tr>
+                        <td>${today}</td>
+                        <td>${alert.employee}</td>
+                        <td>正常班次</td>
+                        <td>
+                            <span class="badge ${alert.type === '迟到' ? 'bg-warning' : alert.type === '早退' ? 'bg-warning' : 'bg-danger'}">
+                                ${alert.type}
+                            </span>
+                        </td>
+                        <td>本月累计${alert.type}${alert.count}次</td>
+                    </tr>
+                `;
+                attendanceAlertBody.innerHTML += row;
+            });
+        }
+
+        // 显示薪资管理模态框
+        function showSalaryModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            loadSalaryRecords();
+
+            const modal = new bootstrap.Modal(document.getElementById('salaryModal'));
+            modal.show();
+        }
+
+        // 加载工资记录
+        function loadSalaryRecords() {
+            const salaryMonth = document.getElementById('salaryMonth').value;
+
+            fetch(`/api/salary_records?project_id=${currentProjectId}&salary_month=${salaryMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySalaryRecords(data);
+                })
+                .catch(error => {
+                    console.error('加载工资记录失败:', error);
+                    showAlert('加载工资记录失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示工资记录
+        function displaySalaryRecords(data) {
+            const salaryBody = document.getElementById('salaryBody');
+            salaryBody.innerHTML = '';
+
+            if (data.length === 0) {
+                salaryBody.innerHTML = `
+                    <tr>
+                        <td colspan="16" class="text-center text-muted">暂无工资数据</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(record => {
+                const row = `
+                    <tr>
+                        <td>${record.employee_number}</td>
+                        <td>${record.employee_name}</td>
+                        <td>${record.position}</td>
+                        <td>${formatCurrency(record.base_salary)}</td>
+                        <td>${record.work_hours.toFixed(1)}小时</td>
+                        <td>${formatCurrency(record.hourly_wage)}</td>
+                        <td>${formatCurrency(record.overtime_pay)}</td>
+                        <td>${formatCurrency(record.commission_amount)}</td>
+                        <td>${formatCurrency(record.allowance)}</td>
+                        <td class="fw-bold">${formatCurrency(record.total_income)}</td>
+                        <td>${formatCurrency(record.social_insurance)}</td>
+                        <td>${formatCurrency(record.housing_fund)}</td>
+                        <td>${formatCurrency(record.tax)}</td>
+                        <td>${formatCurrency(record.other_deductions)}</td>
+                        <td class="text-success fw-bold">${formatCurrency(record.net_salary)}</td>
+                        <td>
+                            <span class="badge ${record.payment_status === '已发放' ? 'bg-success' : 'bg-warning'}">
+                                ${record.payment_status}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+                salaryBody.innerHTML += row;
+            });
+        }
+
+        // 计算工资
+        function calculateSalary() {
+            const salaryMonth = document.getElementById('salaryMonth').value;
+
+            if (!confirm(`确定要计算 ${salaryMonth} 的工资吗？`)) {
+                return;
+            }
+
+            fetch('/api/calculate_salary', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    project_id: currentProjectId,
+                    salary_month: salaryMonth
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('工资计算完成', 'success');
+                    loadSalaryRecords();
+                } else {
+                    showAlert(data.message || '工资计算失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('计算工资失败:', error);
+                showAlert('计算工资失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 导出工资单
+        function exportSalary() {
+            showAlert('导出功能正在开发中', 'info');
+        }
+
+        // 加载薪资统计
+        function loadSalaryStats() {
+            if (!currentProjectId) return;
+
+            const now = new Date();
+            const salaryMonth = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+            fetch(`/api/salary_records?project_id=${currentProjectId}&salary_month=${salaryMonth}`)
+                .then(response => response.json())
+                .then(data => {
+                    displaySalaryStats(data);
+                })
+                .catch(error => {
+                    console.error('加载薪资统计失败:', error);
+                });
+        }
+
+        // 显示薪资统计
+        function displaySalaryStats(data) {
+            const salaryStats = document.getElementById('salaryStats');
+            const salaryOverviewBody = document.getElementById('salaryOverviewBody');
+
+            if (!data || data.length === 0) {
+                salaryStats.innerHTML = `
+                    <div class="col-12">
+                        <p class="text-muted">暂无薪资数据</p>
+                    </div>
+                `;
+                salaryOverviewBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">暂无薪资数据</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // 按职位分组统计
+            const positionStats = {};
+
+            data.forEach(record => {
+                if (!positionStats[record.position]) {
+                    positionStats[record.position] = {
+                        count: 0,
+                        totalSalary: 0,
+                        maxSalary: 0,
+                        minSalary: Infinity
+                    };
+                }
+
+                const position = positionStats[record.position];
+                position.count++;
+                position.totalSalary += record.net_salary;
+
+                if (record.net_salary > position.maxSalary) {
+                    position.maxSalary = record.net_salary;
+                }
+
+                if (record.net_salary < position.minSalary) {
+                    position.minSalary = record.net_salary;
+                }
+            });
+
+            // 显示总体统计
+            const totalSalary = data.reduce((sum, record) => sum + record.net_salary, 0);
+            const avgSalary = totalSalary / data.length;
+
+            salaryStats.innerHTML = `
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #e3f2fd;">
+                        <div class="number">${formatCurrency(totalSalary)}</div>
+                        <div class="label">本月工资总额</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #f3e5f5;">
+                        <div class="number">${formatCurrency(avgSalary)}</div>
+                        <div class="label">平均工资</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #e8f5e9;">
+                        <div class="number">${data.length}</div>
+                        <div class="label">发薪人数</div>
+                    </div>
+                </div>
+            `;
+
+            // 显示职位统计表格
+            salaryOverviewBody.innerHTML = '';
+
+            Object.entries(positionStats).forEach(([position, stats]) => {
+                const avgSalary = stats.totalSalary / stats.count;
+                const row = `
+                    <tr>
+                        <td>${position}</td>
+                        <td>${stats.count}</td>
+                        <td>${formatCurrency(avgSalary)}</td>
+                        <td>${formatCurrency(stats.maxSalary)}</td>
+                        <td>${formatCurrency(stats.minSalary === Infinity ? 0 : stats.minSalary)}</td>
+                        <td>${formatCurrency(stats.totalSalary)}</td>
+                    </tr>
+                `;
+                salaryOverviewBody.innerHTML += row;
+            });
+        }
+
+        // 显示绩效评估模态框
+        function showPerformanceModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            loadPerformanceEmployeeList();
+            loadRecentPerformance();
+
+            const modal = new bootstrap.Modal(document.getElementById('performanceModal'));
+            modal.show();
+        }
+
+        // 加载绩效员工列表
+        function loadPerformanceEmployeeList() {
+            fetch(`/api/employees?project_id=${currentProjectId}&status=在职`)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById('performanceEmployee');
+                    select.innerHTML = '<option value="">选择员工...</option>';
+
+                    data.forEach(employee => {
+                        const option = document.createElement('option');
+                        option.value = employee.id;
+                        option.textContent = `${employee.name} (${employee.position})`;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('加载员工列表失败:', error);
+                });
+        }
+
+        // 加载员工绩效
+        function loadEmployeePerformance() {
+            const employeeId = document.getElementById('performanceEmployee').value;
+
+            if (!employeeId) {
+                document.getElementById('performanceHistory').innerHTML = '<p class="text-muted">请选择员工</p>';
+                return;
+            }
+
+            document.getElementById('reviewEmployeeId').value = employeeId;
+
+            fetch(`/api/employee_performance?employee_id=${employeeId}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    displayPerformanceHistory(data);
+                })
+                .catch(error => {
+                    console.error('加载绩效历史失败:', error);
+                    showAlert('加载绩效历史失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示绩效历史
+        function displayPerformanceHistory(data) {
+            const performanceHistory = document.getElementById('performanceHistory');
+
+            if (data.length === 0) {
+                performanceHistory.innerHTML = '<p class="text-muted">暂无绩效评估记录</p>';
+                return;
+            }
+
+            let html = '<div class="list-group">';
+
+            data.forEach(review => {
+                const ratingColors = {
+                    '优秀': 'success',
+                    '良好': 'info',
+                    '一般': 'warning',
+                    '待改进': 'danger'
+                };
+
+                html += `
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">${formatDate(review.review_date)} - ${review.review_period}评估</h6>
+                            <span class="badge bg-${ratingColors[review.rating_level] || 'secondary'}">${review.rating_level}</span>
+                        </div>
+                        <p class="mb-1">总分: ${review.total_score.toFixed(1)}</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <small>服务质量: ${review.service_quality_score}</small><br>
+                                <small>客户反馈: ${review.customer_feedback_score}</small><br>
+                                <small>考勤: ${review.attendance_score}</small>
+                            </div>
+                            <div class="col-md-6">
+                                <small>工作效率: ${review.efficiency_score}</small><br>
+                                <small>团队合作: ${review.team_cooperation_score}</small><br>
+                                <small>评估人: ${review.reviewer_name || '系统'}</small>
+                            </div>
+                        </div>
+                        ${review.strengths ? `<p class="mb-1 mt-2"><strong>优点:</strong> ${review.strengths}</p>` : ''}
+                        ${review.areas_for_improvement ? `<p class="mb-1"><strong>待改进:</strong> ${review.areas_for_improvement}</p>` : ''}
+                    </div>
+                `;
+            });
+
+            html += '</div>';
+            performanceHistory.innerHTML = html;
+        }
+
+        // 显示新增绩效表单
+        function showAddPerformanceForm() {
+            const employeeId = document.getElementById('performanceEmployee').value;
+
+            if (!employeeId) {
+                showAlert('请先选择员工', 'warning');
+                return;
+            }
+
+            document.getElementById('addPerformanceForm').style.display = 'block';
+            document.getElementById('reviewDate').value = new Date().toISOString().split('T')[0];
+        }
+
+        // 取消绩效表单
+        function cancelPerformanceForm() {
+            document.getElementById('addPerformanceForm').style.display = 'none';
+            document.getElementById('performanceForm').reset();
+        }
+
+        // 保存绩效评估
+        function savePerformanceReview() {
+            const employeeId = document.getElementById('reviewEmployeeId').value;
+            const reviewDate = document.getElementById('reviewDate').value;
+            const reviewPeriod = document.getElementById('reviewPeriod').value;
+
+            if (!reviewDate || !reviewPeriod) {
+                showAlert('请填写评估日期和周期', 'warning');
+                return;
+            }
+
+            const performanceData = {
+                employee_id: employeeId,
+                review_date: reviewDate,
+                review_period: reviewPeriod,
+                service_quality_score: parseInt(document.getElementById('serviceQualityScore').value),
+                customer_feedback_score: parseInt(document.getElementById('customerFeedbackScore').value),
+                attendance_score: parseInt(document.getElementById('attendanceScore').value),
+                efficiency_score: parseInt(document.getElementById('efficiencyScore').value),
+                team_cooperation_score: parseInt(document.getElementById('teamCooperationScore').value),
+                strengths: document.getElementById('strengths').value,
+                areas_for_improvement: document.getElementById('areasForImprovement').value,
+                development_plan: document.getElementById('developmentPlan').value,
+                promotion_recommendation: document.getElementById('promotionRecommendation').checked ? 1 : 0,
+                salary_adjustment_percentage: parseFloat(document.getElementById('salaryAdjustmentPercentage').value) || 0,
+                notes: document.getElementById('performanceNotes').value
+            };
+
+            fetch('/api/add_performance_review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(performanceData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('绩效评估保存成功', 'success');
+                    cancelPerformanceForm();
+                    loadEmployeePerformance();
+                } else {
+                    showAlert(data.message || '保存失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('保存绩效评估失败:', error);
+                showAlert('保存绩效评估失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 加载绩效统计
+        function loadPerformanceStats() {
+            if (!currentProjectId) return;
+
+            fetch(`/api/personnel_stats?project_id=${currentProjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayPerformanceStats(data);
+                    loadRecentPerformance();
+                })
+                .catch(error => {
+                    console.error('加载绩效统计失败:', error);
+                });
+        }
+
+        // 显示绩效统计
+        function displayPerformanceStats(data) {
+            const performanceStats = document.getElementById('performanceStats');
+
+            // 这里可以添加具体的绩效统计数据
+            performanceStats.innerHTML = `
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #e3f2fd;">
+                        <div class="number">${data.attendance?.attendance_rate ? data.attendance.attendance_rate.toFixed(1) : 0}%</div>
+                        <div class="label">平均出勤率</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #f3e5f5;">
+                        <div class="number">${data.positions ? data.positions.length : 0}</div>
+                        <div class="label">职位类别</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stat-card" style="background-color: #e8f5e9;">
+                        <div class="number">${data.skills ? data.skills.length : 0}</div>
+                        <div class="label">技能类别</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载近期绩效
+        function loadRecentPerformance() {
+            fetch(`/api/recent_performance?project_id=${currentProjectId}&limit=5`)
+                .then(response => response.json())
+                .then(data => {
+                    displayRecentPerformance(data);
+                })
+                .catch(error => {
+                    console.error('加载近期绩效失败:', error);
+                });
+        }
+
+        // 显示近期绩效
+        function displayRecentPerformance(data) {
+            const performanceRecentBody = document.getElementById('performanceRecentBody');
+
+            if (!data || data.length === 0) {
+                performanceRecentBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">暂无绩效评估记录</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(review => {
+                const ratingColors = {
+                    '优秀': 'success',
+                    '良好': 'info',
+                    '一般': 'warning',
+                    '待改进': 'danger'
+                };
+
+                const row = `
+                    <tr>
+                        <td>${review.employee_name}</td>
+                        <td>${formatDate(review.review_date)}</td>
+                        <td>${review.review_period}</td>
+                        <td>${review.total_score ? review.total_score.toFixed(1) : 0}</td>
+                        <td>
+                            <span class="badge bg-${ratingColors[review.rating_level] || 'secondary'}">
+                                ${review.rating_level}
+                            </span>
+                        </td>
+                        <td>${review.reviewer_name || '系统'}</td>
+                    </tr>
+                `;
+                performanceRecentBody.innerHTML += row;
+            });
+        }
+
+        // 显示培训管理模态框
+        function showTrainingModal() {
+            if (!currentProjectId) {
+                showAlert('请先选择项目', 'warning');
+                return;
+            }
+
+            loadTrainingRecords();
+
+            const modal = new bootstrap.Modal(document.getElementById('trainingModal'));
+            modal.show();
+        }
+
+        // 加载培训记录
+        function loadTrainingRecords() {
+            fetch(`/api/training_records?project_id=${currentProjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayTrainingRecords(data);
+                })
+                .catch(error => {
+                    console.error('加载培训记录失败:', error);
+                    showAlert('加载培训记录失败: ' + error.message, 'danger');
+                });
+        }
+
+        // 显示培训记录
+        function displayTrainingRecords(data) {
+            const trainingBody = document.getElementById('trainingBody');
+            trainingBody.innerHTML = '';
+
+            if (data.length === 0) {
+                trainingBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted">暂无培训记录</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(training => {
+                const row = `
+                    <tr>
+                        <td>${training.training_name}</td>
+                        <td>${training.training_type}</td>
+                        <td>${training.trainer || '-'}</td>
+                        <td>${formatDate(training.training_date)}</td>
+                        <td>${training.duration_hours}小时</td>
+                        <td>${training.location || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                查看参与人员
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary me-1" onclick="editTraining(${training.id})">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTraining(${training.id})">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                trainingBody.innerHTML += row;
+            });
+        }
+
+        // 显示新增培训表单
+        function showAddTrainingForm() {
+            document.getElementById('addTrainingForm').style.display = 'block';
+            document.getElementById('trainingName').focus();
+        }
+
+        // 取消培训表单
+        function cancelTrainingForm() {
+            document.getElementById('addTrainingForm').style.display = 'none';
+            document.getElementById('trainingForm').reset();
+        }
+
+        // 保存培训
+        function saveTraining() {
+            const trainingName = document.getElementById('trainingName').value;
+
+            if (!trainingName.trim()) {
+                showAlert('请填写培训名称', 'warning');
+                return;
+            }
+
+            const trainingData = {
+                project_id: currentProjectId,
+                training_name: trainingName,
+                training_type: document.getElementById('trainingType').value,
+                trainer: document.getElementById('trainer').value,
+                training_date: document.getElementById('trainingDate').value || new Date().toISOString().split('T')[0],
+                duration_hours: parseFloat(document.getElementById('durationHours').value) || 1,
+                location: document.getElementById('trainingLocation').value,
+                notes: document.getElementById('trainingNotes').value
+            };
+
+            fetch('/api/add_training_record', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(trainingData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('培训记录保存成功', 'success');
+                    cancelTrainingForm();
+                    loadTrainingRecords();
+                } else {
+                    showAlert(data.message || '保存失败', 'danger');
+                }
+            })
+            .catch(error => {
+                console.error('保存培训记录失败:', error);
+                showAlert('保存培训记录失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 编辑培训
+        function editTraining(trainingId) {
+            showAlert('编辑功能正在开发中', 'info');
+        }
+
+        // 删除培训
+        function deleteTraining(trainingId) {
+            if (!confirm('确定要删除此培训记录吗？')) {
+                return;
+            }
+
+            fetch(`/api/delete_training?training_id=${trainingId}`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('培训记录删除成功', 'success');
+                    loadTrainingRecords();
+                }
+            })
+            .catch(error => {
+                console.error('删除培训记录失败:', error);
+                showAlert('删除培训记录失败: ' + error.message, 'danger');
+            });
+        }
+
+        // 加载培训统计
+        function loadTrainingStats() {
+            if (!currentProjectId) return;
+
+            fetch(`/api/training_stats?project_id=${currentProjectId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayTrainingStats(data);
+                    loadTrainingPlans();
+                })
+                .catch(error => {
+                    console.error('加载培训统计失败:', error);
+                });
+        }
+
+        // 显示培训统计
+        function displayTrainingStats(data) {
+            const trainingStats = document.getElementById('trainingStats');
+
+            // 这里可以添加具体的培训统计数据
+            trainingStats.innerHTML = `
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e3f2fd;">
+                        <div class="number">${data.total_trainings || 0}</div>
+                        <div class="label">培训总数</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #f3e5f5;">
+                        <div class="number">${data.total_participants || 0}</div>
+                        <div class="label">参与人次</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #e8f5e9;">
+                        <div class="number">${data.training_types || 0}</div>
+                        <div class="label">培训类型</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card" style="background-color: #fff3e0;">
+                        <div class="number">${data.avg_score ? data.avg_score.toFixed(1) : 0}</div>
+                        <div class="label">平均评分</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 加载培训计划
+        function loadTrainingPlans() {
+            const now = new Date();
+            const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+            fetch(`/api/upcoming_trainings?project_id=${currentProjectId}&start_date=${now.toISOString().split('T')[0]}&end_date=${nextMonth.toISOString().split('T')[0]}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayTrainingPlans(data);
+                })
+                .catch(error => {
+                    console.error('加载培训计划失败:', error);
+                });
+        }
+
+        // 显示培训计划
+        function displayTrainingPlans(data) {
+            const trainingPlanBody = document.getElementById('trainingPlanBody');
+
+            if (!data || data.length === 0) {
+                trainingPlanBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center text-muted">近期无培训计划</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            data.forEach(training => {
+                const status = new Date(training.training_date) < new Date() ? '已结束' : '计划中';
+                const statusBadge = status === '已结束' ? 'bg-secondary' : 'bg-success';
+
+                const row = `
+                    <tr>
+                        <td>${training.training_name}</td>
+                        <td>${training.training_type}</td>
+                        <td>${formatDate(training.training_date)}</td>
+                        <td>${training.trainer || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary">
+                                查看预计名单
+                            </button>
+                        </td>
+                        <td>
+                            <span class="badge ${statusBadge}">${status}</span>
+                        </td>
+                    </tr>
+                `;
+                trainingPlanBody.innerHTML += row;
+            });
+        }
+
+        // 工具函数
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function formatDateForInput(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        }
+
+        function formatCurrency(amount) {
+            if (amount === undefined || amount === null) return '¥0.00';
+            return '¥' + parseFloat(amount).toFixed(2);
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = `
+                top: 20px;
+                right: 20px;
+                z-index: 9999;
+                min-width: 300px;
+            `;
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.parentNode.removeChild(alertDiv);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
