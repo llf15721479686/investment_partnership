@@ -1,0 +1,3828 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>足浴店业务管理系统</title>
+    <!-- CSS样式保持不变（与之前相同） -->
+    <style>
+        /* 保持之前的CSS样式不变 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 主容器 */
+        .business-container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        /* 导航栏 */
+        .main-nav {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 0 30px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 2px;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            padding: 20px 25px;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-tab.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom-color: white;
+        }
+
+        /* 头部信息 */
+        .header-info {
+            background: white;
+            padding: 25px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .project-selector {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .project-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .project-status {
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-planning {
+            background: linear-gradient(135deg, #fed7d7, #fc8181);
+            color: #9b2c2c;
+        }
+
+        .status-setting {
+            background: linear-gradient(135deg, #feebc8, #ed8936);
+            color: #9c4221;
+        }
+
+        .status-operating {
+            background: linear-gradient(135deg, #c6f6d5, #48bb78);
+            color: #276749;
+        }
+
+        /* 仪表板卡片 */
+        .dashboard {
+            padding: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            background: #f7fafc;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .icon-equipment {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .icon-decoration {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            color: white;
+        }
+
+        .icon-inventory {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+            color: white;
+        }
+
+        .icon-budget {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            color: white;
+        }
+
+        .card-title {
+            font-size: 14px;
+            color: #718096;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+
+        .card-change {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .change-positive {
+            color: #48bb78;
+        }
+
+        .change-negative {
+            color: #f56565;
+        }
+
+        /* 内容区域 */
+        .content-area {
+            padding: 30px;
+            display: none;
+        }
+
+        .content-area.active {
+            display: block;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d3748;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 6px;
+            height: 24px;
+            border-radius: 3px;
+        }
+
+        .section-equipment .section-title::before {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+
+        .section-decoration .section-title::before {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+        }
+
+        .section-inventory .section-title::before {
+            background: linear-gradient(135deg, #ed8936, #dd6b20);
+        }
+
+        .section-budget .section-title::before {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+        }
+
+        .section-rooms .section-title::before {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+        }
+
+        .section-revenue .section-title::before {
+            background: linear-gradient(135deg, #9f7aea, #805ad5);
+        }
+
+        /* 表格样式 */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .data-table th {
+            background: #f7fafc;
+            padding: 18px 20px;
+            font-weight: 600;
+            text-align: left;
+            font-size: 14px;
+            color: #4a5568;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            color: #2d3748;
+        }
+
+        .data-table tr:hover {
+            background: #f7fafc;
+        }
+
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-block;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .tag-normal {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #276749;
+        }
+
+        .tag-maintenance {
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+            color: #9b2c2c;
+        }
+
+        .tag-scrap {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e0);
+            color: #4a5568;
+        }
+
+        .tag-vip {
+            background: linear-gradient(135deg, #e9d8fd, #d6bcfa);
+            color: #553c9a;
+        }
+
+        .tag-budget {
+            background: linear-gradient(135deg, #bee3f8, #90cdf4);
+            color: #2c5282;
+        }
+
+        .tag-actual {
+            background: linear-gradient(135deg, #fed7e2, #fbb6ce);
+            color: #97266d;
+        }
+
+        .tag-pending {
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
+            color: #9b2c2c;
+        }
+
+        .tag-in-progress {
+            background: linear-gradient(135deg, #feebc8, #fbd38d);
+            color: #9c4221;
+        }
+
+        .tag-completed {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #276749;
+        }
+
+        /* 表单模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #2d3748;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .form-group.required label::after {
+            content: ' *';
+            color: #f56565;
+        }
+
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        /* 图表容器 */
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .chart-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 20px;
+        }
+
+        /* 房间卡片 */
+        .room-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border: 3px solid transparent;
+        }
+
+        .room-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .room-card.available {
+            border-color: #48bb78;
+        }
+
+        .room-card.occupied {
+            border-color: #f56565;
+        }
+
+        .room-card.cleaning {
+            border-color: #ed8936;
+        }
+
+        .room-card.maintenance {
+            border-color: #718096;
+        }
+
+        .room-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .room-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .room-type {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .room-type.vip {
+            background: linear-gradient(135deg, #e9d8fd, #d6bcfa);
+            color: #553c9a;
+        }
+
+        .room-type.normal {
+            background: linear-gradient(135deg, #bee3f8, #90cdf4);
+            color: #2c5282;
+        }
+
+        .room-type.luxury {
+            background: linear-gradient(135deg, #fed7e2, #fbb6ce);
+            color: #97266d;
+        }
+
+        .room-details {
+            margin-bottom: 15px;
+        }
+
+        .room-detail-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .room-detail-label {
+            color: #718096;
+        }
+
+        .room-detail-value {
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .room-status {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .room-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-wrap: wrap;
+            }
+
+            .nav-tab {
+                flex: 1;
+                justify-content: center;
+                padding: 15px 10px;
+                font-size: 13px;
+            }
+
+            .header-info {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+        }
+
+        /* 加载动画 */
+        .loading {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        /* 库存预警 */
+        .inventory-warning {
+            background: linear-gradient(135deg, #fed7d7, #fc8181);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .warning-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #9b2c2c;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- HTML结构保持不变 -->
+    <div class="business-container">
+        <!-- 导航栏 -->
+        <div class="main-nav">
+            <div class="nav-tabs">
+                <div class="nav-tab active" onclick="switchTab('dashboard')">
+                    📊 仪表板
+                </div>
+                <div class="nav-tab" onclick="switchTab('equipment')">
+                    🛠️ 设备管理
+                </div>
+                <div class="nav-tab" onclick="switchTab('decoration')">
+                    🏗️ 装修管理
+                </div>
+                <div class="nav-tab" onclick="switchTab('inventory')">
+                    📦 物料库存
+                </div>
+                <div class="nav-tab" onclick="switchTab('rooms')">
+                    🚪 房间管理
+                </div>
+                <div class="nav-tab" onclick="switchTab('budget')">
+                    💰 成本预算
+                </div>
+                <div class="nav-tab" onclick="switchTab('revenue')">
+                    📈 收入预测
+                </div>
+                <div class="nav-tab" onclick="window.location.href='/'">
+                    ← 返回投资管理
+                </div>
+            </div>
+        </div>
+
+        <!-- 头部信息 -->
+        <div class="header-info">
+            <div class="project-selector">
+                <select id="projectSelect" class="form-control" style="width: 300px;" onchange="loadProjectData(this.value)">
+                    <option value="">请选择足浴店项目...</option>
+                </select>
+                <div class="project-info">
+                    <span id="projectStatus" class="project-status status-planning">规划中</span>
+                    <span id="projectProgress" style="color: #718096; font-size: 14px;">-</span>
+                </div>
+            </div>
+            <div>
+                <button class="btn btn-primary" onclick="exportReport()">
+                    📄 导出报告
+                </button>
+            </div>
+        </div>
+
+        <!-- 仪表板 -->
+        <div id="dashboard" class="content-area active">
+            <div class="dashboard">
+                <div class="dashboard-card">
+                    <div class="card-icon icon-equipment">
+                        🛠️
+                    </div>
+                    <div class="card-title">设备总价值</div>
+                    <div class="card-value" id="totalEquipmentValue">0 元</div>
+                    <div class="card-change" id="equipmentStatus">0台设备</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-icon icon-decoration">
+                        🏗️
+                    </div>
+                    <div class="card-title">装修总预算</div>
+                    <div class="card-value" id="totalDecorationBudget">0 元</div>
+                    <div class="card-change" id="decorationStatus">0项装修</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-icon icon-inventory">
+                        📦
+                    </div>
+                    <div class="card-title">物料库存</div>
+                    <div class="card-value" id="totalInventoryValue">0 元</div>
+                    <div class="card-change" id="inventoryStatus">0种物料</div>
+                </div>
+
+                <div class="dashboard-card">
+                    <div class="card-icon icon-budget">
+                        💰
+                    </div>
+                    <div class="card-title">总成本预算</div>
+                    <div class="card-value" id="totalCostBudget">0 元</div>
+                    <div class="card-change" id="budgetStatus">0项预算</div>
+                </div>
+            </div>
+
+            <!-- 图表区域 -->
+            <div class="chart-container">
+                <div class="chart-title">成本分布图</div>
+                <canvas id="costDistributionChart" height="300"></canvas>
+            </div>
+
+            <div class="chart-container">
+                <div class="chart-title">项目进度</div>
+                <canvas id="projectProgressChart" height="200"></canvas>
+            </div>
+        </div>
+
+        <!-- 设备管理 -->
+        <div id="equipment" class="content-area section-equipment">
+            <div class="section-header">
+                <h2 class="section-title">🛠️ 设备管理</h2>
+                <button class="btn btn-primary" onclick="showEquipmentModal()">
+                    ➕ 添加设备
+                </button>
+            </div>
+
+            <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+                <select id="equipmentTypeFilter" class="form-control" style="width: 200px;" onchange="filterEquipment()">
+                    <option value="">所有设备类型</option>
+                    <option value="足浴设备">足浴设备</option>
+                    <option value="按摩设备">按摩设备</option>
+                    <option value="水处理设备">水处理设备</option>
+                    <option value="家具">家具</option>
+                    <option value="电器">电器</option>
+                    <option value="其他">其他</option>
+                </select>
+                <select id="equipmentStatusFilter" class="form-control" style="width: 200px;" onchange="filterEquipment()">
+                    <option value="">所有状态</option>
+                    <option value="正常">正常</option>
+                    <option value="维修">维修</option>
+                    <option value="报废">报废</option>
+                </select>
+                <input type="text" id="equipmentSearch" class="form-control" style="width: 300px;" placeholder="搜索设备名称..." oninput="filterEquipment()">
+            </div>
+
+            <table class="data-table" id="equipmentTable">
+                <thead>
+                    <tr>
+                        <th>设备名称</th>
+                        <th>类型</th>
+                        <th>规格</th>
+                        <th>数量</th>
+                        <th>单价</th>
+                        <th>总价</th>
+                        <th>状态</th>
+                        <th>位置</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="equipmentTableBody">
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无设备数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 装修管理 -->
+        <div id="decoration" class="content-area section-decoration">
+            <div class="section-header">
+                <h2 class="section-title">🏗️ 装修管理</h2>
+                <button class="btn btn-success" onclick="showDecorationModal()">
+                    ➕ 添加装修项目
+                </button>
+            </div>
+
+            <div style="margin-bottom: 30px;">
+                <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+                    <select id="decorationTypeFilter" class="form-control" style="width: 200px;" onchange="filterDecoration()">
+                        <option value="">所有装修类型</option>
+                        <option value="硬装">硬装</option>
+                        <option value="软装">软装</option>
+                        <option value="电气">电气</option>
+                        <option value="管道">管道</option>
+                        <option value="其他">其他</option>
+                    </select>
+                    <select id="decorationStatusFilter" class="form-control" style="width: 200px;" onchange="filterDecoration()">
+                        <option value="">所有状态</option>
+                        <option value="未开始">未开始</option>
+                        <option value="进行中">进行中</option>
+                        <option value="已完成">已完成</option>
+                    </select>
+                </div>
+
+                <!-- 进度统计 -->
+                <div style="background: #f7fafc; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3 style="margin-bottom: 15px; color: #4a5568;">装修进度统计</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #667eea;" id="decorationTotal">0</div>
+                            <div style="color: #718096; font-size: 14px;">总项目数</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #48bb78;" id="decorationCompleted">0</div>
+                            <div style="color: #718096; font-size: 14px;">已完成</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #ed8936;" id="decorationInProgress">0</div>
+                            <div style="color: #718096; font-size: 14px;">进行中</div>
+                        </div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; text-align: center;">
+                            <div style="font-size: 24px; font-weight: 800; color: #f56565;" id="decorationPending">0</div>
+                            <div style="color: #718096; font-size: 14px;">未开始</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <table class="data-table" id="decorationTable">
+                <thead>
+                    <tr>
+                        <th>项目名称</th>
+                        <th>类型</th>
+                        <th>区域</th>
+                        <th>规格</th>
+                        <th>数量</th>
+                        <th>单价</th>
+                        <th>总价</th>
+                        <th>承包方</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="decorationTableBody">
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无装修项目数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 物料库存 -->
+        <div id="inventory" class="content-area section-inventory">
+            <div class="section-header">
+                <h2 class="section-title">📦 物料库存管理</h2>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-warning" onclick="showInventoryModal()">
+                        ➕ 添加物料
+                    </button>
+                    <button class="btn btn-info" onclick="showInventoryInModal()">
+                        📥 入库
+                    </button>
+                    <button class="btn btn-danger" onclick="showInventoryOutModal()">
+                        📤 出库
+                    </button>
+                </div>
+            </div>
+
+            <!-- 库存预警 -->
+            <div class="inventory-warning" id="inventoryWarning">
+                <div class="warning-content">
+                    <span>⚠️</span>
+                    <span id="warningMessage"></span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+                <select id="inventoryCategoryFilter" class="form-control" style="width: 200px;" onchange="filterInventory()">
+                    <option value="">所有物料类别</option>
+                    <option value="洗浴用品">洗浴用品</option>
+                    <option value="饮品">饮品</option>
+                    <option value="小吃">小吃</option>
+                    <option value="清洁用品">清洁用品</option>
+                    <option value="办公用品">办公用品</option>
+                    <option value="其他">其他</option>
+                </select>
+                <input type="text" id="inventorySearch" class="form-control" style="width: 300px;" placeholder="搜索物料名称..." oninput="filterInventory()">
+            </div>
+
+            <table class="data-table" id="inventoryTable">
+                <thead>
+                    <tr>
+                        <th>物料名称</th>
+                        <th>类别</th>
+                        <th>规格</th>
+                        <th>单位</th>
+                        <th>库存数量</th>
+                        <th>最低库存</th>
+                        <th>单价</th>
+                        <th>库存价值</th>
+                        <th>供应商</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="inventoryTableBody">
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无物料库存数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 房间管理 -->
+        <div id="rooms" class="content-area section-rooms">
+            <div class="section-header">
+                <h2 class="section-title">🚪 房间/包间管理</h2>
+                <button class="btn btn-info" onclick="showRoomModal()">
+                    ➕ 添加房间
+                </button>
+            </div>
+
+            <!-- 房间状态统计 -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px;">
+                <div style="background: linear-gradient(135deg, #c6f6d5, #9ae6b4); padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 800; color: #276749;" id="roomAvailable">0</div>
+                    <div style="color: #276749; font-weight: 600;">空闲</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #fed7d7, #feb2b2); padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 800; color: #9b2c2c;" id="roomOccupied">0</div>
+                    <div style="color: #9b2c2c; font-weight: 600;">使用中</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #fed7e2, #fbb6ce); padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 800; color: #97266d;" id="roomCleaning">0</div>
+                    <div style="color: #97266d; font-weight: 600;">清洁中</div>
+                </div>
+                <div style="background: linear-gradient(135deg, #e2e8f0, #cbd5e0); padding: 20px; border-radius: 10px; text-align: center;">
+                    <div style="font-size: 32px; font-weight: 800; color: #4a5568;" id="roomMaintenance">0</div>
+                    <div style="color: #4a5568; font-weight: 600;">维修中</div>
+                </div>
+            </div>
+
+            <div class="rooms-grid" id="roomsGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+                <!-- 房间卡片将通过JavaScript动态生成 -->
+                <div style="text-align: center; padding: 60px 20px; color: #718096; grid-column: 1 / -1;">
+                    <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">🚪</div>
+                    <p>暂无房间数据</p>
+                    <p style="font-size: 14px; margin-top: 10px;">点击"添加房间"按钮开始创建</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 成本预算 -->
+        <div id="budget" class="content-area section-budget">
+            <div class="section-header">
+                <h2 class="section-title">💰 成本预算管理</h2>
+                <button class="btn btn-primary" onclick="showBudgetModal()">
+                    ➕ 添加预算项
+                </button>
+            </div>
+
+            <!-- 预算概览 -->
+            <div style="background: #f7fafc; padding: 25px; border-radius: 12px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 20px; color: #4a5568;">预算执行情况</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">总预算</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #2d3748;" id="totalBudgetAmount">0 元</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">实际支出</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #f56565;" id="totalActualAmount">0 元</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">预算差异</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #48bb78;" id="totalVariance">0 元</div>
+                    </div>
+                    <div style="background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05);">
+                        <div style="font-size: 14px; color: #718096; margin-bottom: 10px;">执行率</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #667eea;" id="budgetExecutionRate">0%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px; display: flex; gap: 15px;">
+                <select id="budgetCategoryFilter" class="form-control" style="width: 200px;" onchange="filterBudget()">
+                    <option value="">所有预算类别</option>
+                    <option value="设备">设备</option>
+                    <option value="装修">装修</option>
+                    <option value="物料">物料</option>
+                    <option value="人工">人工</option>
+                    <option value="租金">租金</option>
+                    <option value="水电">水电</option>
+                    <option value="其他">其他</option>
+                </select>
+            </div>
+
+            <table class="data-table" id="budgetTable">
+                <thead>
+                    <tr>
+                        <th>预算类别</th>
+                        <th>项目名称</th>
+                        <th>预算金额</th>
+                        <th>实际金额</th>
+                        <th>差异</th>
+                        <th>执行率</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="budgetTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无预算数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 收入预测 -->
+        <div id="revenue" class="content-area section-revenue">
+            <div class="section-header">
+                <h2 class="section-title">📈 收入预测分析</h2>
+                <button class="btn btn-success" onclick="showRevenueModal()">
+                    ➕ 添加预测
+                </button>
+            </div>
+
+            <!-- 收入预测图表 -->
+            <div class="chart-container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div class="chart-title">月度收入预测</div>
+                    <select class="form-control" style="width: 200px;" onchange="loadRevenueData(this.value)">
+                        <option value="6">最近6个月</option>
+                        <option value="12">最近12个月</option>
+                        <option value="24">最近24个月</option>
+                    </select>
+                </div>
+                <canvas id="revenueForecastChart" height="300"></canvas>
+            </div>
+
+            <!-- 收入类型分布 -->
+            <div class="chart-container">
+                <div class="chart-title">收入类型分布</div>
+                <canvas id="revenueTypeChart" height="250"></canvas>
+            </div>
+
+            <!-- 详细预测表 -->
+            <h3 style="margin: 30px 0 20px; color: #4a5568;">详细预测数据</h3>
+            <table class="data-table" id="revenueTable">
+                <thead>
+                    <tr>
+                        <th>预测月份</th>
+                        <th>服务类型</th>
+                        <th>单价(元)</th>
+                        <th>预计服务次数</th>
+                        <th>预计收入</th>
+                        <th>累计收入</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="revenueTableBody">
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无收入预测数据
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 各种模态框 -->
+    <!-- 设备管理模态框 -->
+    <div id="equipmentModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加设备</div>
+            <form id="equipmentForm" onsubmit="saveEquipment(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="equipmentName">设备名称</label>
+                        <input type="text" id="equipmentName" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="equipmentType">设备类型</label>
+                        <select id="equipmentType" class="form-control" required>
+                            <option value="">请选择类型</option>
+                            <option value="足浴设备">足浴设备</option>
+                            <option value="按摩设备">按摩设备</option>
+                            <option value="水处理设备">水处理设备</option>
+                            <option value="家具">家具</option>
+                            <option value="电器">电器</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="specification">规格型号</label>
+                        <input type="text" id="specification" class="form-control">
+                    </div>
+                    <div class="form-group required">
+                        <label for="quantity">数量</label>
+                        <input type="number" id="quantity" class="form-control" min="1" value="1" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="unitPrice">单价(元)</label>
+                        <input type="number" id="unitPrice" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="purchaseDate">采购日期</label>
+                        <input type="date" id="purchaseDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="supplier">供应商</label>
+                        <input type="text" id="supplier" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="warrantyPeriod">保修期(月)</label>
+                        <input type="number" id="warrantyPeriod" class="form-control" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="status">状态</label>
+                        <select id="status" class="form-control">
+                            <option value="正常">正常</option>
+                            <option value="维修">维修</option>
+                            <option value="报废">报废</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="location">存放位置</label>
+                        <input type="text" id="location" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="equipmentNotes">备注</label>
+                    <textarea id="equipmentNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('equipmentModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 装修管理模态框 -->
+    <div id="decorationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加装修项目</div>
+            <form id="decorationForm" onsubmit="saveDecoration(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="itemName">项目名称</label>
+                        <input type="text" id="itemName" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="itemType">装修类型</label>
+                        <select id="itemType" class="form-control" required>
+                            <option value="">请选择类型</option>
+                            <option value="硬装">硬装</option>
+                            <option value="软装">软装</option>
+                            <option value="电气">电气</option>
+                            <option value="管道">管道</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="area">区域</label>
+                        <select id="area" class="form-control">
+                            <option value="">请选择区域</option>
+                            <option value="大堂">大堂</option>
+                            <option value="普通包间">普通包间</option>
+                            <option value="VIP包间">VIP包间</option>
+                            <option value="走廊">走廊</option>
+                            <option value="卫生间">卫生间</option>
+                            <option value="员工区">员工区</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="decorationSpecification">规格要求</label>
+                        <input type="text" id="decorationSpecification" class="form-control">
+                    </div>
+                    <div class="form-group required">
+                        <label for="decorationUnit">单位</label>
+                        <input type="text" id="decorationUnit" class="form-control" value="项" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="decorationQuantity">数量</label>
+                        <input type="number" id="decorationQuantity" class="form-control" min="1" step="0.01" value="1" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="decorationUnitPrice">单价(元)</label>
+                        <input type="number" id="decorationUnitPrice" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="contractor">承包方</label>
+                        <input type="text" id="contractor" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">开始日期</label>
+                        <input type="date" id="startDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">结束日期</label>
+                        <input type="date" id="endDate" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="decorationStatus">状态</label>
+                        <select id="decorationStatus" class="form-control">
+                            <option value="未开始">未开始</option>
+                            <option value="进行中">进行中</option>
+                            <option value="已完成">已完成</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="decorationNotes">备注</label>
+                    <textarea id="decorationNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('decorationModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 物料管理模态框 -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加物料</div>
+            <form id="inventoryForm" onsubmit="saveInventory(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="inventoryItemName">物料名称</label>
+                        <input type="text" id="inventoryItemName" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="inventoryCategory">物料类别</label>
+                        <select id="inventoryCategory" class="form-control" required>
+                            <option value="">请选择类别</option>
+                            <option value="洗浴用品">洗浴用品</option>
+                            <option value="饮品">饮品</option>
+                            <option value="小吃">小吃</option>
+                            <option value="清洁用品">清洁用品</option>
+                            <option value="办公用品">办公用品</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventorySpecification">规格</label>
+                        <input type="text" id="inventorySpecification" class="form-control">
+                    </div>
+                    <div class="form-group required">
+                        <label for="inventoryUnit">单位</label>
+                        <input type="text" id="inventoryUnit" class="form-control" value="件" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="inventoryStockQuantity">初始库存数量</label>
+                        <input type="number" id="inventoryStockQuantity" class="form-control" min="0" step="0.01" value="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryMinQuantity">最低库存量</label>
+                        <input type="number" id="inventoryMinQuantity" class="form-control" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group required">
+                        <label for="inventoryUnitPrice">单价(元)</label>
+                        <input type="number" id="inventoryUnitPrice" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="inventorySupplier">供应商</label>
+                        <input type="text" id="inventorySupplier" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label for="inventoryExpirationDate">保质期至</label>
+                        <input type="date" id="inventoryExpirationDate" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryNotes">备注</label>
+                    <textarea id="inventoryNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('inventoryModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 入库出库模态框 -->
+    <div id="inventoryInOutModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header" id="inventoryInOutTitle">入库操作</div>
+            <form id="inventoryInOutForm" onsubmit="saveInventoryInOut(event)">
+                <div class="form-group required">
+                    <label for="inventoryItemSelect">选择物料</label>
+                    <select id="inventoryItemSelect" class="form-control" required>
+                        <option value="">请选择物料</option>
+                    </select>
+                </div>
+                <div class="form-group required">
+                    <label for="inventoryChangeAmount">数量</label>
+                    <input type="number" id="inventoryChangeAmount" class="form-control" min="0.01" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="inventoryChangeReason">原因/备注</label>
+                    <input type="text" id="inventoryChangeReason" class="form-control" placeholder="例如：采购入库、领用出库等">
+                </div>
+                <input type="hidden" id="inventoryChangeType" value="in">
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('inventoryInOutModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">确认</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 房间管理模态框 -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加房间</div>
+            <form id="roomForm" onsubmit="saveRoom(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="roomNumber">房间号</label>
+                        <input type="text" id="roomNumber" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="roomType">房间类型</label>
+                        <select id="roomType" class="form-control" required>
+                            <option value="">请选择类型</option>
+                            <option value="普通">普通包间</option>
+                            <option value="VIP">VIP包间</option>
+                            <option value="豪华">豪华包间</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomCapacity">可容纳人数</label>
+                        <input type="number" id="roomCapacity" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomArea">面积(平方米)</label>
+                        <input type="number" id="roomArea" class="form-control" min="0" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomHourlyRate">小时费率(元)</label>
+                        <input type="number" id="roomHourlyRate" class="form-control" min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="roomStatus">状态</label>
+                        <select id="roomStatus" class="form-control">
+                            <option value="空闲">空闲</option>
+                            <option value="使用中">使用中</option>
+                            <option value="清洁中">清洁中</option>
+                            <option value="维修中">维修中</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="roomEquipmentList">配备设备</label>
+                        <input type="text" id="roomEquipmentList" class="form-control" placeholder="设备名称，用逗号分隔">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="roomNotes">备注</label>
+                    <textarea id="roomNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('roomModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 成本预算模态框 -->
+    <div id="budgetModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加预算项</div>
+            <form id="budgetForm" onsubmit="saveBudget(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="budgetCategory">预算类别</label>
+                        <select id="budgetCategory" class="form-control" required>
+                            <option value="">请选择类别</option>
+                            <option value="设备">设备</option>
+                            <option value="装修">装修</option>
+                            <option value="物料">物料</option>
+                            <option value="人工">人工</option>
+                            <option value="租金">租金</option>
+                            <option value="水电">水电</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group required">
+                        <label for="budgetItemName">项目名称</label>
+                        <input type="text" id="budgetItemName" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="budgetAmount">预算金额(元)</label>
+                        <input type="number" id="budgetAmount" class="form-control" min="0" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="budgetActualAmount">实际金额(元)</label>
+                        <input type="number" id="budgetActualAmount" class="form-control" min="0" step="0.01" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="budgetStatus">状态</label>
+                        <select id="budgetStatus" class="form-control">
+                            <option value="预算中">预算中</option>
+                            <option value="执行中">执行中</option>
+                            <option value="已完成">已完成</option>
+                            <option value="超支">超支</option>
+                            <option value="节约">节约</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="budgetNotes">备注</label>
+                    <textarea id="budgetNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('budgetModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 收入预测模态框 -->
+    <div id="revenueModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">添加收入预测</div>
+            <form id="revenueForm" onsubmit="saveRevenue(event)">
+                <div class="form-grid">
+                    <div class="form-group required">
+                        <label for="revenueForecastMonth">预测月份</label>
+                        <input type="month" id="revenueForecastMonth" class="form-control" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="revenueForecastType">服务类型</label>
+                        <select id="revenueForecastType" class="form-control" required>
+                            <option value="">请选择类型</option>
+                            <option value="足浴">足浴</option>
+                            <option value="按摩">按摩</option>
+                            <option value="SPA">SPA</option>
+                            <option value="会员卡">会员卡</option>
+                            <option value="其他">其他</option>
+                        </select>
+                    </div>
+                    <div class="form-group required">
+                        <label for="revenueUnitPrice">单价(元)</label>
+                        <input type="number" id="revenueUnitPrice" class="form-control" min="0" step="1" required>
+                    </div>
+                    <div class="form-group required">
+                        <label for="revenueExpectedQuantity">预计服务次数</label>
+                        <input type="number" id="revenueExpectedQuantity" class="form-control" min="0" step="1" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="revenueNotes">备注</label>
+                    <textarea id="revenueNotes" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('revenueModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 加载动画 -->
+    <div id="loadingOverlay" class="loading">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        // 全局变量
+        let currentProjectId = null;
+        let currentProjectData = null;
+        let equipmentList = [];
+        let decorationList = [];
+        let inventoryList = [];
+        let roomList = [];
+        let budgetList = [];
+        let revenueList = [];
+
+        // 图表实例
+        let costChart = null;
+        let progressChart = null;
+        let revenueChart = null;
+        let revenueTypeChart = null;
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAllProjects();
+            initCharts();
+        });
+
+        // 加载所有项目
+        async function loadAllProjects() {
+            try {
+                const response = await fetch('/api/projects');
+                if (!response.ok) throw new Error('加载项目失败');
+                const projects = await response.json();
+
+                const select = document.getElementById('projectSelect');
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = `${project.name} - ${getProjectStatus(project)}`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('加载项目失败:', error);
+                showMessage('加载项目失败: ' + error.message, 'error');
+            }
+        }
+
+        function getProjectStatus(project) {
+            if (!project.total_investment || project.total_investment === 0) {
+                return '规划中';
+            } else if (project.total_investment < 1000000) {
+                return '筹备中';
+            } else {
+                return '运营中';
+            }
+        }
+
+        // 切换标签页
+        function switchTab(tabName) {
+            // 隐藏所有内容区域
+            document.querySelectorAll('.content-area').forEach(area => {
+                area.classList.remove('active');
+            });
+
+            // 移除所有标签的active类
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+
+            // 显示选中的内容区域
+            document.getElementById(tabName).classList.add('active');
+
+            // 激活选中的标签
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                if (tab.textContent.includes(getTabIcon(tabName))) {
+                    tab.classList.add('active');
+                }
+            });
+
+            // 加载对应标签的数据
+            if (currentProjectId) {
+                loadTabData(tabName);
+            }
+        }
+
+        function getTabIcon(tabName) {
+            const icons = {
+                'dashboard': '📊',
+                'equipment': '🛠️',
+                'decoration': '🏗️',
+                'inventory': '📦',
+                'rooms': '🚪',
+                'budget': '💰',
+                'revenue': '📈'
+            };
+            return icons[tabName] || '';
+        }
+
+        // 加载项目数据
+        async function loadProjectData(projectId) {
+            if (!projectId) return;
+
+            currentProjectId = projectId;
+            showLoading();
+
+            try {
+                // 加载项目详情
+                const projectResponse = await fetch(`/api/project/${projectId}`);
+                currentProjectData = await projectResponse.json();
+
+                // 更新项目状态显示
+                updateProjectStatus();
+
+                // 加载所有数据
+                await Promise.all([
+                    loadEquipment(),
+                    loadDecoration(),
+                    loadInventory(),
+                    loadRooms(),
+                    loadBudget(),
+                    loadRevenue()
+                ]);
+
+                // 更新仪表板
+                updateDashboard();
+
+                // 更新统计图表
+                updateCharts();
+
+                showMessage('项目数据加载成功', 'success');
+
+            } catch (error) {
+                console.error('加载项目数据失败:', error);
+                showMessage('加载项目数据失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载标签数据
+        async function loadTabData(tabName) {
+            if (!currentProjectId) return;
+
+            switch(tabName) {
+                case 'equipment':
+                    await loadEquipment();
+                    break;
+                case 'decoration':
+                    await loadDecoration();
+                    break;
+                case 'inventory':
+                    await loadInventory();
+                    break;
+                case 'rooms':
+                    await loadRooms();
+                    break;
+                case 'budget':
+                    await loadBudget();
+                    break;
+                case 'revenue':
+                    await loadRevenue();
+                    break;
+            }
+        }
+
+        // 加载设备数据
+        async function loadEquipment() {
+            try {
+                const response = await fetch(`/api/equipment/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载设备数据失败');
+
+                equipmentList = await response.json();
+                renderEquipmentTable();
+
+            } catch (error) {
+                console.error('加载设备数据失败:', error);
+                equipmentList = [];
+                renderEquipmentTable();
+            }
+        }
+
+        // 渲染设备表格
+        function renderEquipmentTable() {
+            const tbody = document.getElementById('equipmentTableBody');
+            if (!tbody) return;
+
+            const typeFilter = document.getElementById('equipmentTypeFilter').value;
+            const statusFilter = document.getElementById('equipmentStatusFilter').value;
+            const searchText = document.getElementById('equipmentSearch').value.toLowerCase();
+
+            const filteredEquipment = equipmentList.filter(equipment => {
+                if (typeFilter && equipment.equipment_type !== typeFilter) return false;
+                if (statusFilter && equipment.status !== statusFilter) return false;
+                if (searchText && !equipment.equipment_name.toLowerCase().includes(searchText)) return false;
+                return true;
+            });
+
+            if (filteredEquipment.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 40px; color: #718096;">
+                            ${equipmentList.length === 0 ? '暂无设备数据' : '没有找到匹配的设备'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            let totalValue = 0;
+
+            filteredEquipment.forEach(equipment => {
+                const statusClass = equipment.status === '正常' ? 'tag-normal' :
+                                 equipment.status === '维修' ? 'tag-maintenance' : 'tag-scrap';
+
+                html += `
+                    <tr>
+                        <td>${equipment.equipment_name}</td>
+                        <td>${equipment.equipment_type}</td>
+                        <td>${equipment.specification || '-'}</td>
+                        <td>${equipment.quantity}</td>
+                        <td>${parseFloat(equipment.unit_price).toLocaleString('zh-CN')}元</td>
+                        <td>${parseFloat(equipment.total_price).toLocaleString('zh-CN')}元</td>
+                        <td><span class="status-tag ${statusClass}">${equipment.status}</span></td>
+                        <td>${equipment.location || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #4299e1; color: white; margin-right: 5px;" onclick="editEquipment(${equipment.id})">编辑</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #f56565; color: white;" onclick="deleteEquipment(${equipment.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+
+                totalValue += parseFloat(equipment.total_price);
+            });
+
+            tbody.innerHTML = html;
+
+            // 更新仪表板数据
+            const totalEquipmentValue = equipmentList.reduce((sum, eq) => sum + parseFloat(eq.total_price), 0);
+            document.getElementById('totalEquipmentValue').textContent = totalEquipmentValue.toLocaleString('zh-CN') + '元';
+            document.getElementById('equipmentStatus').textContent = `${equipmentList.length}台设备`;
+        }
+
+        // 过滤设备
+        function filterEquipment() {
+            renderEquipmentTable();
+        }
+
+        // 显示设备模态框
+        function showEquipmentModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('equipmentForm').reset();
+            document.getElementById('purchaseDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('status').value = '正常';
+
+            showModal('equipmentModal');
+        }
+
+        // 保存设备
+async function saveEquipment(event) {
+    event.preventDefault();
+
+    // 验证必填字段
+    const equipmentName = document.getElementById('equipmentName').value.trim();
+    const equipmentType = document.getElementById('equipmentType').value;
+    const quantity = parseInt(document.getElementById('quantity').value);
+    const unitPrice = parseFloat(document.getElementById('unitPrice').value);
+
+    if (!equipmentName) {
+        showMessage('设备名称不能为空', 'error');
+        return;
+    }
+
+    if (!equipmentType) {
+        showMessage('请选择设备类型', 'error');
+        return;
+    }
+
+    if (quantity <= 0 || isNaN(quantity)) {
+        showMessage('数量必须大于0', 'error');
+        return;
+    }
+
+    if (unitPrice <= 0 || isNaN(unitPrice)) {
+        showMessage('单价必须大于0', 'error');
+        return;
+    }
+
+    const formData = {
+        project_id: parseInt(currentProjectId), // 确保是数字
+        equipment_name: equipmentName,
+        equipment_type: equipmentType,
+        specification: document.getElementById('specification').value.trim(),
+        quantity: quantity,
+        unit_price: unitPrice,
+        purchase_date: document.getElementById('purchaseDate').value,
+        supplier: document.getElementById('supplier').value.trim(),
+        warranty_period: document.getElementById('warrantyPeriod').value ?
+            parseInt(document.getElementById('warrantyPeriod').value) : null,
+        status: document.getElementById('status').value,
+        location: document.getElementById('location').value.trim(),
+        notes: document.getElementById('equipmentNotes').value.trim()
+    };
+
+    showLoading();
+    try {
+        console.log('发送设备数据:', formData);
+
+        // 使用与saveTier相同的请求头格式
+        const response = await fetch(`/api/equipment/project/${currentProjectId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+
+        // 直接尝试解析JSON
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.error || result.message ||
+                `请求失败: ${response.status} ${response.statusText}`);
+        }
+
+        if (result.success) {
+            showMessage('设备保存成功', 'success');
+            hideModal('equipmentModal');
+            await loadEquipment();
+            updateDashboard();
+        } else {
+            throw new Error(result.error || result.message || '保存设备失败');
+        }
+
+    } catch (error) {
+        console.error('保存设备失败:', error);
+
+        // 更简洁的错误信息
+        let errorMessage = error.message;
+        if (error.message.includes('latin-1') || error.message.includes('ordinal not in range')) {
+            errorMessage = '服务器编码错误，请联系管理员';
+            // 这里可以添加重试逻辑或使用其他方法
+        }
+
+        showMessage('保存设备失败: ' + errorMessage, 'error');
+    } finally {
+        hideLoading();
+    }
+}
+
+        // 编辑设备
+        function editEquipment(equipmentId) {
+            const equipment = equipmentList.find(e => e.id == equipmentId);
+            if (equipment) {
+                // 填充表单
+                document.getElementById('equipmentName').value = equipment.equipment_name;
+                document.getElementById('equipmentType').value = equipment.equipment_type;
+                document.getElementById('specification').value = equipment.specification || '';
+                document.getElementById('quantity').value = equipment.quantity;
+                document.getElementById('unitPrice').value = equipment.unit_price;
+                document.getElementById('purchaseDate').value = equipment.purchase_date || '';
+                document.getElementById('supplier').value = equipment.supplier || '';
+                document.getElementById('warrantyPeriod').value = equipment.warranty_period || '';
+                document.getElementById('status').value = equipment.status;
+                document.getElementById('location').value = equipment.location || '';
+                document.getElementById('equipmentNotes').value = equipment.notes || '';
+
+                // 修改模态框标题和表单行为
+                document.querySelector('#equipmentModal .modal-header').textContent = '编辑设备';
+                const form = document.getElementById('equipmentForm');
+                form.onsubmit = async function(event) {
+                    event.preventDefault();
+                    await updateEquipment(equipmentId, event);
+                };
+
+                showModal('equipmentModal');
+            }
+        }
+
+        async function updateEquipment(equipmentId, event) {
+            event.preventDefault();
+
+            const formData = {
+                equipment_name: document.getElementById('equipmentName').value,
+                equipment_type: document.getElementById('equipmentType').value,
+                specification: document.getElementById('specification').value,
+                quantity: parseInt(document.getElementById('quantity').value),
+                unit_price: parseFloat(document.getElementById('unitPrice').value),
+                status: document.getElementById('status').value,
+                location: document.getElementById('location').value,
+                notes: document.getElementById('equipmentNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/equipment/${equipmentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('更新设备失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('设备更新成功', 'success');
+                    hideModal('equipmentModal');
+                    await loadEquipment();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '更新设备失败');
+                }
+
+            } catch (error) {
+                console.error('更新设备失败:', error);
+                showMessage('更新设备失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 删除设备
+        async function deleteEquipment(equipmentId) {
+            if (!confirm('确定要删除这个设备吗？')) return;
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/equipment/${equipmentId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('删除设备失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('设备删除成功', 'success');
+                    await loadEquipment();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '删除设备失败');
+                }
+
+            } catch (error) {
+                console.error('删除设备失败:', error);
+                showMessage('删除设备失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载装修数据
+        async function loadDecoration() {
+            try {
+                const response = await fetch(`/api/decoration/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载装修数据失败');
+
+                decorationList = await response.json();
+                renderDecorationTable();
+                updateDecorationStats();
+
+            } catch (error) {
+                console.error('加载装修数据失败:', error);
+                decorationList = [];
+                renderDecorationTable();
+            }
+        }
+
+        // 渲染装修表格
+        function renderDecorationTable() {
+            const tbody = document.getElementById('decorationTableBody');
+            if (!tbody) return;
+
+            const typeFilter = document.getElementById('decorationTypeFilter').value;
+            const statusFilter = document.getElementById('decorationStatusFilter').value;
+
+            const filteredDecoration = decorationList.filter(item => {
+                if (typeFilter && item.item_type !== typeFilter) return false;
+                if (statusFilter && item.status !== statusFilter) return false;
+                return true;
+            });
+
+            if (filteredDecoration.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #718096;">
+                            ${decorationList.length === 0 ? '暂无装修项目数据' : '没有找到匹配的项目'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            let totalBudget = 0;
+
+            filteredDecoration.forEach(item => {
+                const statusClass = item.status === '未开始' ? 'tag-pending' :
+                                  item.status === '进行中' ? 'tag-in-progress' : 'tag-completed';
+
+                html += `
+                    <tr>
+                        <td>${item.item_name}</td>
+                        <td>${item.item_type}</td>
+                        <td>${item.area || '-'}</td>
+                        <td>${item.specification || '-'}</td>
+                        <td>${item.quantity}${item.unit}</td>
+                        <td>${parseFloat(item.unit_price).toLocaleString('zh-CN')}元</td>
+                        <td>${parseFloat(item.total_price).toLocaleString('zh-CN')}元</td>
+                        <td>${item.contractor || '-'}</td>
+                        <td><span class="status-tag ${statusClass}">${item.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #4299e1; color: white; margin-right: 5px;" onclick="editDecoration(${item.id})">编辑</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #f56565; color: white;" onclick="deleteDecoration(${item.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+
+                totalBudget += parseFloat(item.total_price);
+            });
+
+            tbody.innerHTML = html;
+
+            // 更新仪表板数据
+            const totalDecorationBudget = decorationList.reduce((sum, item) => sum + parseFloat(item.total_price), 0);
+            document.getElementById('totalDecorationBudget').textContent = totalDecorationBudget.toLocaleString('zh-CN') + '元';
+            document.getElementById('decorationStatus').textContent = `${decorationList.length}项装修`;
+        }
+
+        // 更新装修统计
+        function updateDecorationStats() {
+            const total = decorationList.length;
+            const completed = decorationList.filter(item => item.status === '已完成').length;
+            const inProgress = decorationList.filter(item => item.status === '进行中').length;
+            const pending = decorationList.filter(item => item.status === '未开始').length;
+
+            document.getElementById('decorationTotal').textContent = total;
+            document.getElementById('decorationCompleted').textContent = completed;
+            document.getElementById('decorationInProgress').textContent = inProgress;
+            document.getElementById('decorationPending').textContent = pending;
+        }
+
+        // 过滤装修项目
+        function filterDecoration() {
+            renderDecorationTable();
+        }
+
+        // 显示装修模态框
+        function showDecorationModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('decorationForm').reset();
+            document.getElementById('decorationUnit').value = '项';
+            document.getElementById('decorationQuantity').value = 1;
+            document.getElementById('decorationStatus').value = '未开始';
+
+            showModal('decorationModal');
+        }
+
+        // 保存装修项目
+        async function saveDecoration(event) {
+            event.preventDefault();
+
+            const formData = {
+                project_id: currentProjectId,
+                item_name: document.getElementById('itemName').value,
+                item_type: document.getElementById('itemType').value,
+                area: document.getElementById('area').value,
+                specification: document.getElementById('decorationSpecification').value,
+                unit: document.getElementById('decorationUnit').value,
+                quantity: parseFloat(document.getElementById('decorationQuantity').value),
+                unit_price: parseFloat(document.getElementById('decorationUnitPrice').value),
+                contractor: document.getElementById('contractor').value,
+                start_date: document.getElementById('startDate').value || null,
+                end_date: document.getElementById('endDate').value || null,
+                status: document.getElementById('decorationStatus').value,
+                notes: document.getElementById('decorationNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/decoration/project/${currentProjectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('保存装修项目失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('装修项目保存成功', 'success');
+                    hideModal('decorationModal');
+                    await loadDecoration();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '保存装修项目失败');
+                }
+
+            } catch (error) {
+                console.error('保存装修项目失败:', error);
+                showMessage('保存装修项目失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 编辑装修项目
+        function editDecoration(itemId) {
+            const item = decorationList.find(d => d.id == itemId);
+            if (item) {
+                // 填充表单
+                document.getElementById('itemName').value = item.item_name;
+                document.getElementById('itemType').value = item.item_type;
+                document.getElementById('area').value = item.area || '';
+                document.getElementById('decorationSpecification').value = item.specification || '';
+                document.getElementById('decorationUnit').value = item.unit || '项';
+                document.getElementById('decorationQuantity').value = item.quantity;
+                document.getElementById('decorationUnitPrice').value = item.unit_price;
+                document.getElementById('contractor').value = item.contractor || '';
+                document.getElementById('startDate').value = item.start_date || '';
+                document.getElementById('endDate').value = item.end_date || '';
+                document.getElementById('decorationStatus').value = item.status;
+                document.getElementById('decorationNotes').value = item.notes || '';
+
+                // 修改模态框标题和表单行为
+                document.querySelector('#decorationModal .modal-header').textContent = '编辑装修项目';
+                const form = document.getElementById('decorationForm');
+                form.onsubmit = async function(event) {
+                    event.preventDefault();
+                    await updateDecoration(itemId, event);
+                };
+
+                showModal('decorationModal');
+            }
+        }
+
+        async function updateDecoration(itemId, event) {
+            event.preventDefault();
+
+            const formData = {
+                item_name: document.getElementById('itemName').value,
+                item_type: document.getElementById('itemType').value,
+                area: document.getElementById('area').value,
+                specification: document.getElementById('decorationSpecification').value,
+                unit: document.getElementById('decorationUnit').value,
+                quantity: parseFloat(document.getElementById('decorationQuantity').value),
+                unit_price: parseFloat(document.getElementById('decorationUnitPrice').value),
+                contractor: document.getElementById('contractor').value,
+                start_date: document.getElementById('startDate').value || null,
+                end_date: document.getElementById('endDate').value || null,
+                status: document.getElementById('decorationStatus').value,
+                notes: document.getElementById('decorationNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/decoration/${itemId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('更新装修项目失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('装修项目更新成功', 'success');
+                    hideModal('decorationModal');
+                    await loadDecoration();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '更新装修项目失败');
+                }
+
+            } catch (error) {
+                console.error('更新装修项目失败:', error);
+                showMessage('更新装修项目失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 删除装修项目
+        async function deleteDecoration(itemId) {
+            if (!confirm('确定要删除这个装修项目吗？')) return;
+
+            showLoading();
+            try {
+                // 这里需要实现删除装修项目的API
+                // const response = await fetch(`/api/decoration/${itemId}`, {
+                //     method: 'DELETE'
+                // });
+
+                // 暂时使用模拟数据
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                showMessage('装修项目删除成功', 'success');
+                decorationList = decorationList.filter(item => item.id !== itemId);
+                renderDecorationTable();
+                updateDecorationStats();
+                updateDashboard();
+
+            } catch (error) {
+                console.error('删除装修项目失败:', error);
+                showMessage('删除装修项目失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载物料数据
+        async function loadInventory() {
+            try {
+                const response = await fetch(`/api/inventory/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载物料数据失败');
+
+                inventoryList = await response.json();
+                renderInventoryTable();
+                checkInventoryWarning();
+
+            } catch (error) {
+                console.error('加载物料数据失败:', error);
+                inventoryList = [];
+                renderInventoryTable();
+            }
+        }
+
+        // 渲染物料表格
+        function renderInventoryTable() {
+            const tbody = document.getElementById('inventoryTableBody');
+            if (!tbody) return;
+
+            const categoryFilter = document.getElementById('inventoryCategoryFilter').value;
+            const searchText = document.getElementById('inventorySearch').value.toLowerCase();
+
+            const filteredInventory = inventoryList.filter(item => {
+                if (categoryFilter && item.category !== categoryFilter) return false;
+                if (searchText && !item.item_name.toLowerCase().includes(searchText)) return false;
+                return true;
+            });
+
+            if (filteredInventory.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="10" style="text-align: center; padding: 40px; color: #718096;">
+                            ${inventoryList.length === 0 ? '暂无物料库存数据' : '没有找到匹配的物料'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            let totalValue = 0;
+
+            filteredInventory.forEach(item => {
+                const stockValue = parseFloat(item.stock_quantity) * parseFloat(item.unit_price);
+                const isLowStock = item.stock_quantity <= item.min_quantity;
+
+                html += `
+                    <tr style="${isLowStock ? 'background-color: #fff5f5;' : ''}">
+                        <td>${item.item_name}</td>
+                        <td>${item.category}</td>
+                        <td>${item.specification || '-'}</td>
+                        <td>${item.unit}</td>
+                        <td style="font-weight: ${isLowStock ? 'bold' : 'normal'}; color: ${isLowStock ? '#f56565' : 'inherit'}">
+                            ${parseFloat(item.stock_quantity).toLocaleString('zh-CN')}
+                            ${isLowStock ? ' ⚠️' : ''}
+                        </td>
+                        <td>${parseFloat(item.min_quantity).toLocaleString('zh-CN')}</td>
+                        <td>${parseFloat(item.unit_price).toLocaleString('zh-CN')}元</td>
+                        <td>${stockValue.toLocaleString('zh-CN')}元</td>
+                        <td>${item.supplier || '-'}</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #4299e1; color: white; margin-right: 5px;" onclick="editInventory(${item.id})">编辑</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #48bb78; color: white; margin-right: 5px;" onclick="quickIn(${item.id})">入库</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #ed8936; color: white;" onclick="quickOut(${item.id})">出库</button>
+                        </td>
+                    </tr>
+                `;
+
+                totalValue += stockValue;
+            });
+
+            tbody.innerHTML = html;
+
+            // 更新仪表板数据
+            document.getElementById('totalInventoryValue').textContent = totalValue.toLocaleString('zh-CN') + '元';
+            document.getElementById('inventoryStatus').textContent = `${inventoryList.length}种物料`;
+        }
+
+        // 检查库存预警
+        function checkInventoryWarning() {
+            const lowStockItems = inventoryList.filter(item =>
+                item.min_quantity > 0 && item.stock_quantity <= item.min_quantity
+            );
+
+            const warningElement = document.getElementById('inventoryWarning');
+            const messageElement = document.getElementById('warningMessage');
+
+            if (lowStockItems.length > 0) {
+                const itemNames = lowStockItems.map(item => item.item_name).join('、');
+                messageElement.textContent = `警告：以下物料库存不足：${itemNames}，请及时补充！`;
+                warningElement.style.display = 'block';
+            } else {
+                warningElement.style.display = 'none';
+            }
+        }
+
+        // 过滤物料
+        function filterInventory() {
+            renderInventoryTable();
+        }
+
+        // 显示物料模态框
+        function showInventoryModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('inventoryForm').reset();
+            document.getElementById('inventoryUnit').value = '件';
+            document.getElementById('inventoryStockQuantity').value = 0;
+            document.getElementById('inventoryMinQuantity').value = 0;
+
+            showModal('inventoryModal');
+        }
+
+        // 保存物料
+        async function saveInventory(event) {
+            event.preventDefault();
+
+            const formData = {
+                project_id: currentProjectId,
+                item_name: document.getElementById('inventoryItemName').value,
+                category: document.getElementById('inventoryCategory').value,
+                specification: document.getElementById('inventorySpecification').value,
+                unit: document.getElementById('inventoryUnit').value,
+                stock_quantity: parseFloat(document.getElementById('inventoryStockQuantity').value),
+                min_quantity: parseFloat(document.getElementById('inventoryMinQuantity').value),
+                unit_price: parseFloat(document.getElementById('inventoryUnitPrice').value),
+                supplier: document.getElementById('inventorySupplier').value,
+                last_purchase_date: new Date().toISOString().split('T')[0],
+                expiration_date: document.getElementById('inventoryExpirationDate').value || null,
+                notes: document.getElementById('inventoryNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/inventory/project/${currentProjectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('保存物料失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('物料保存成功', 'success');
+                    hideModal('inventoryModal');
+                    await loadInventory();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '保存物料失败');
+                }
+
+            } catch (error) {
+                console.error('保存物料失败:', error);
+                showMessage('保存物料失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 显示入库模态框
+        function showInventoryInModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            const select = document.getElementById('inventoryItemSelect');
+            select.innerHTML = '<option value="">请选择物料</option>';
+
+            inventoryList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.item_name} (当前库存: ${item.stock_quantity}${item.unit})`;
+                select.appendChild(option);
+            });
+
+            document.getElementById('inventoryInOutTitle').textContent = '入库操作';
+            document.getElementById('inventoryChangeType').value = 'in';
+
+            showModal('inventoryInOutModal');
+        }
+
+        // 显示出库模态框
+        function showInventoryOutModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            const select = document.getElementById('inventoryItemSelect');
+            select.innerHTML = '<option value="">请选择物料</option>';
+
+            inventoryList.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.item_name} (当前库存: ${item.stock_quantity}${item.unit})`;
+                select.appendChild(option);
+            });
+
+            document.getElementById('inventoryInOutTitle').textContent = '出库操作';
+            document.getElementById('inventoryChangeType').value = 'out';
+
+            showModal('inventoryInOutModal');
+        }
+
+        // 快速入库
+        function quickIn(inventoryId) {
+            const item = inventoryList.find(i => i.id == inventoryId);
+            if (item) {
+                const select = document.getElementById('inventoryItemSelect');
+                select.innerHTML = '';
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.item_name} (当前库存: ${item.stock_quantity}${item.unit})`;
+                select.appendChild(option);
+
+                document.getElementById('inventoryInOutTitle').textContent = '入库操作';
+                document.getElementById('inventoryChangeType').value = 'in';
+                document.getElementById('inventoryChangeAmount').value = '';
+
+                showModal('inventoryInOutModal');
+            }
+        }
+
+        // 快速出库
+        function quickOut(inventoryId) {
+            const item = inventoryList.find(i => i.id == inventoryId);
+            if (item) {
+                const select = document.getElementById('inventoryItemSelect');
+                select.innerHTML = '';
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = `${item.item_name} (当前库存: ${item.stock_quantity}${item.unit})`;
+                select.appendChild(option);
+
+                document.getElementById('inventoryInOutTitle').textContent = '出库操作';
+                document.getElementById('inventoryChangeType').value = 'out';
+                document.getElementById('inventoryChangeAmount').value = '';
+
+                showModal('inventoryInOutModal');
+            }
+        }
+
+        // 保存入库出库操作
+        async function saveInventoryInOut(event) {
+            event.preventDefault();
+
+            const inventoryId = document.getElementById('inventoryItemSelect').value;
+            const changeAmount = parseFloat(document.getElementById('inventoryChangeAmount').value);
+            const changeType = document.getElementById('inventoryChangeType').value;
+
+            if (!inventoryId) {
+                showMessage('请选择物料', 'error');
+                return;
+            }
+
+            if (changeAmount <= 0) {
+                showMessage('数量必须大于0', 'error');
+                return;
+            }
+
+            const item = inventoryList.find(i => i.id == inventoryId);
+            if (changeType === 'out' && item.stock_quantity < changeAmount) {
+                showMessage(`库存不足，当前库存为${item.stock_quantity}${item.unit}`, 'error');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/inventory/update/${inventoryId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        change_amount: changeAmount,
+                        change_type: changeType
+                    })
+                });
+
+                if (!response.ok) throw new Error('库存操作失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage(`${changeType === 'in' ? '入库' : '出库'}操作成功`, 'success');
+                    hideModal('inventoryInOutModal');
+                    await loadInventory();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '库存操作失败');
+                }
+
+            } catch (error) {
+                console.error('库存操作失败:', error);
+                showMessage('库存操作失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 编辑物料
+        function editInventory(inventoryId) {
+            const item = inventoryList.find(i => i.id == inventoryId);
+            if (item) {
+                // 填充表单
+                document.getElementById('inventoryItemName').value = item.item_name;
+                document.getElementById('inventoryCategory').value = item.category;
+                document.getElementById('inventorySpecification').value = item.specification || '';
+                document.getElementById('inventoryUnit').value = item.unit || '件';
+                document.getElementById('inventoryStockQuantity').value = item.stock_quantity;
+                document.getElementById('inventoryMinQuantity').value = item.min_quantity;
+                document.getElementById('inventoryUnitPrice').value = item.unit_price;
+                document.getElementById('inventorySupplier').value = item.supplier || '';
+                document.getElementById('inventoryExpirationDate').value = item.expiration_date || '';
+                document.getElementById('inventoryNotes').value = item.notes || '';
+
+                // 修改模态框标题和表单行为
+                document.querySelector('#inventoryModal .modal-header').textContent = '编辑物料';
+                const form = document.getElementById('inventoryForm');
+                form.onsubmit = async function(event) {
+                    event.preventDefault();
+                    await updateInventory(inventoryId, event);
+                };
+
+                showModal('inventoryModal');
+            }
+        }
+
+        async function updateInventory(inventoryId, event) {
+            event.preventDefault();
+
+            const formData = {
+                item_name: document.getElementById('inventoryItemName').value,
+                category: document.getElementById('inventoryCategory').value,
+                specification: document.getElementById('inventorySpecification').value,
+                unit: document.getElementById('inventoryUnit').value,
+                stock_quantity: parseFloat(document.getElementById('inventoryStockQuantity').value),
+                min_quantity: parseFloat(document.getElementById('inventoryMinQuantity').value),
+                unit_price: parseFloat(document.getElementById('inventoryUnitPrice').value),
+                supplier: document.getElementById('inventorySupplier').value,
+                expiration_date: document.getElementById('inventoryExpirationDate').value || null,
+                notes: document.getElementById('inventoryNotes').value
+            };
+
+            showLoading();
+            try {
+                // 这里需要实现更新物料的API
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                showMessage('物料更新成功', 'success');
+                hideModal('inventoryModal');
+
+                // 更新本地数据
+                const index = inventoryList.findIndex(i => i.id == inventoryId);
+                if (index !== -1) {
+                    inventoryList[index] = { ...inventoryList[index], ...formData };
+                }
+
+                renderInventoryTable();
+                checkInventoryWarning();
+                updateDashboard();
+
+            } catch (error) {
+                console.error('更新物料失败:', error);
+                showMessage('更新物料失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载房间数据
+        async function loadRooms() {
+            try {
+                const response = await fetch(`/api/rooms/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载房间数据失败');
+
+                roomList = await response.json();
+                renderRoomsGrid();
+                updateRoomStats();
+
+            } catch (error) {
+                console.error('加载房间数据失败:', error);
+                roomList = [];
+                renderRoomsGrid();
+            }
+        }
+
+        // 渲染房间网格
+        function renderRoomsGrid() {
+            const grid = document.getElementById('roomsGrid');
+            if (!grid) return;
+
+            if (roomList.length === 0) {
+                grid.innerHTML = `
+                    <div style="text-align: center; padding: 60px 20px; color: #718096; grid-column: 1 / -1;">
+                        <div style="font-size: 48px; margin-bottom: 20px; opacity: 0.3;">🚪</div>
+                        <p>暂无房间数据</p>
+                        <p style="font-size: 14px; margin-top: 10px;">点击"添加房间"按钮开始创建</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            roomList.forEach(room => {
+                const statusClass = getRoomStatusClass(room.status);
+                const typeClass = getRoomTypeClass(room.room_type);
+
+                html += `
+                    <div class="room-card ${statusClass}">
+                        <div class="room-header">
+                            <div class="room-title">${room.room_number}</div>
+                            <div class="room-type ${typeClass}">${room.room_type}</div>
+                        </div>
+
+                        <div class="room-details">
+                            <div class="room-detail-item">
+                                <span class="room-detail-label">可容纳人数:</span>
+                                <span class="room-detail-value">${room.capacity}人</span>
+                            </div>
+                            <div class="room-detail-item">
+                                <span class="room-detail-label">面积:</span>
+                                <span class="room-detail-value">${room.area}㎡</span>
+                            </div>
+                            <div class="room-detail-item">
+                                <span class="room-detail-label">小时费率:</span>
+                                <span class="room-detail-value">${room.hourly_rate}元</span>
+                            </div>
+                        </div>
+
+                        <div class="room-status" style="${getRoomStatusStyle(room.status)}">
+                            ${room.status}
+                        </div>
+
+                        <div class="room-actions">
+                            <button class="btn btn-sm" style="flex: 1; background: #4299e1; color: white;" onclick="changeRoomStatus(${room.id}, '${room.status}')">
+                                更新状态
+                            </button>
+                            <button class="btn btn-sm" style="flex: 1; background: #f56565; color: white;" onclick="deleteRoom(${room.id})">
+                                删除
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            grid.innerHTML = html;
+        }
+
+        function getRoomStatusClass(status) {
+            switch(status) {
+                case '空闲': return 'available';
+                case '使用中': return 'occupied';
+                case '清洁中': return 'cleaning';
+                case '维修中': return 'maintenance';
+                default: return '';
+            }
+        }
+
+        function getRoomTypeClass(type) {
+            switch(type) {
+                case 'VIP': return 'vip';
+                case '豪华': return 'luxury';
+                default: return 'normal';
+            }
+        }
+
+        function getRoomStatusStyle(status) {
+            const styles = {
+                '空闲': 'background: linear-gradient(135deg, #c6f6d5, #9ae6b4); color: #276749;',
+                '使用中': 'background: linear-gradient(135deg, #fed7d7, #feb2b2); color: #9b2c2c;',
+                '清洁中': 'background: linear-gradient(135deg, #fed7e2, #fbb6ce); color: #97266d;',
+                '维修中': 'background: linear-gradient(135deg, #e2e8f0, #cbd5e0); color: #4a5568;'
+            };
+            return styles[status] || '';
+        }
+
+        // 更新房间统计
+        function updateRoomStats() {
+            const available = roomList.filter(room => room.status === '空闲').length;
+            const occupied = roomList.filter(room => room.status === '使用中').length;
+            const cleaning = roomList.filter(room => room.status === '清洁中').length;
+            const maintenance = roomList.filter(room => room.status === '维修中').length;
+
+            document.getElementById('roomAvailable').textContent = available;
+            document.getElementById('roomOccupied').textContent = occupied;
+            document.getElementById('roomCleaning').textContent = cleaning;
+            document.getElementById('roomMaintenance').textContent = maintenance;
+        }
+
+        // 显示房间模态框
+        function showRoomModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('roomForm').reset();
+            document.getElementById('roomCapacity').value = 1;
+            document.getElementById('roomStatus').value = '空闲';
+
+            showModal('roomModal');
+        }
+
+        // 保存房间
+        async function saveRoom(event) {
+            event.preventDefault();
+
+            const formData = {
+                project_id: currentProjectId,
+                room_number: document.getElementById('roomNumber').value,
+                room_type: document.getElementById('roomType').value,
+                capacity: parseInt(document.getElementById('roomCapacity').value),
+                area: parseFloat(document.getElementById('roomArea').value) || 0,
+                hourly_rate: parseFloat(document.getElementById('roomHourlyRate').value) || 0,
+                status: document.getElementById('roomStatus').value,
+                equipment_list: document.getElementById('roomEquipmentList').value,
+                notes: document.getElementById('roomNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/rooms/project/${currentProjectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('保存房间失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('房间保存成功', 'success');
+                    hideModal('roomModal');
+                    await loadRooms();
+                } else {
+                    throw new Error(result.error || '保存房间失败');
+                }
+
+            } catch (error) {
+                console.error('保存房间失败:', error);
+                showMessage('保存房间失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 更新房间状态
+        async function changeRoomStatus(roomId, currentStatus) {
+            const statusMap = {
+                '空闲': '使用中',
+                '使用中': '清洁中',
+                '清洁中': '空闲',
+                '维修中': '空闲'
+            };
+
+            const newStatus = statusMap[currentStatus] || '空闲';
+
+            if (!confirm(`确定要将房间状态从"${currentStatus}"改为"${newStatus}"吗？`)) return;
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/rooms/update-status/${roomId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                });
+
+                if (!response.ok) throw new Error('更新房间状态失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('房间状态更新成功', 'success');
+                    await loadRooms();
+                } else {
+                    throw new Error(result.error || '更新房间状态失败');
+                }
+
+            } catch (error) {
+                console.error('更新房间状态失败:', error);
+                showMessage('更新房间状态失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 删除房间
+        async function deleteRoom(roomId) {
+            if (!confirm('确定要删除这个房间吗？')) return;
+
+            showLoading();
+            try {
+                // 这里需要实现删除房间的API
+                // const response = await fetch(`/api/rooms/${roomId}`, {
+                //     method: 'DELETE'
+                // });
+
+                // 暂时使用模拟数据
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                showMessage('房间删除成功', 'success');
+                roomList = roomList.filter(room => room.id !== roomId);
+                renderRoomsGrid();
+                updateRoomStats();
+
+            } catch (error) {
+                console.error('删除房间失败:', error);
+                showMessage('删除房间失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载预算数据
+        async function loadBudget() {
+            try {
+                const response = await fetch(`/api/budget/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载预算数据失败');
+
+                budgetList = await response.json();
+                renderBudgetTable();
+                updateBudgetStats();
+
+            } catch (error) {
+                console.error('加载预算数据失败:', error);
+                budgetList = [];
+                renderBudgetTable();
+            }
+        }
+
+                // 渲染预算表格
+        function renderBudgetTable() {
+            const tbody = document.getElementById('budgetTableBody');
+            if (!tbody) return;
+
+            const categoryFilter = document.getElementById('budgetCategoryFilter').value;
+
+            const filteredBudget = budgetList.filter(item => {
+                if (categoryFilter && item.category !== categoryFilter) return false;
+                return true;
+            });
+
+            if (filteredBudget.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: #718096;">
+                            ${budgetList.length === 0 ? '暂无预算数据' : '没有找到匹配的预算'}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+
+            filteredBudget.forEach(item => {
+                const budgetAmount = parseFloat(item.budget_amount);
+                const actualAmount = parseFloat(item.actual_amount);
+                const variance = budgetAmount - actualAmount;
+                const executionRate = budgetAmount > 0 ? ((actualAmount / budgetAmount) * 100).toFixed(1) : 0;
+                const varianceClass = variance >= 0 ? 'change-positive' : 'change-negative';
+                const statusClass = getBudgetStatusClass(item.status);
+
+                html += `
+                    <tr>
+                        <td>${item.category}</td>
+                        <td>${item.item_name}</td>
+                        <td>${budgetAmount.toLocaleString('zh-CN')}元</td>
+                        <td>${actualAmount.toLocaleString('zh-CN')}元</td>
+                        <td><span class="${varianceClass}">${variance.toLocaleString('zh-CN')}元</span></td>
+                        <td>${executionRate}%</td>
+                        <td><span class="status-tag ${statusClass}">${item.status}</span></td>
+                        <td>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #4299e1; color: white; margin-right: 5px;" onclick="editBudget(${item.id})">编辑</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #f56565; color: white;" onclick="deleteBudget(${item.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        function getBudgetStatusClass(status) {
+            switch(status) {
+                case '预算中': return 'tag-pending';
+                case '执行中': return 'tag-in-progress';
+                case '已完成': return 'tag-completed';
+                case '超支': return 'tag-maintenance';
+                case '节约': return 'tag-normal';
+                default: return 'tag-normal';
+            }
+        }
+
+        // 更新预算统计
+        function updateBudgetStats() {
+            const totalBudget = budgetList.reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+            const totalActual = budgetList.reduce((sum, item) => sum + parseFloat(item.actual_amount), 0);
+            const totalVariance = totalBudget - totalActual;
+            const executionRate = totalBudget > 0 ? ((totalActual / totalBudget) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalBudgetAmount').textContent = totalBudget.toLocaleString('zh-CN') + '元';
+            document.getElementById('totalActualAmount').textContent = totalActual.toLocaleString('zh-CN') + '元';
+            document.getElementById('totalVariance').textContent = totalVariance.toLocaleString('zh-CN') + '元';
+            document.getElementById('budgetExecutionRate').textContent = executionRate + '%';
+
+            // 更新仪表板
+            document.getElementById('totalCostBudget').textContent = totalBudget.toLocaleString('zh-CN') + '元';
+            document.getElementById('budgetStatus').textContent = `${budgetList.length}项预算`;
+        }
+
+        // 过滤预算
+        function filterBudget() {
+            renderBudgetTable();
+        }
+
+        // 显示预算模态框
+        function showBudgetModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('budgetForm').reset();
+            document.getElementById('budgetActualAmount').value = 0;
+            document.getElementById('budgetStatus').value = '预算中';
+
+            showModal('budgetModal');
+        }
+
+        // 保存预算
+        async function saveBudget(event) {
+            event.preventDefault();
+
+            const formData = {
+                project_id: currentProjectId,
+                category: document.getElementById('budgetCategory').value,
+                item_name: document.getElementById('budgetItemName').value,
+                budget_amount: parseFloat(document.getElementById('budgetAmount').value),
+                actual_amount: parseFloat(document.getElementById('budgetActualAmount').value),
+                status: document.getElementById('budgetStatus').value,
+                notes: document.getElementById('budgetNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/budget/project/${currentProjectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('保存预算失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('预算保存成功', 'success');
+                    hideModal('budgetModal');
+                    await loadBudget();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '保存预算失败');
+                }
+
+            } catch (error) {
+                console.error('保存预算失败:', error);
+                showMessage('保存预算失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 编辑预算
+        function editBudget(budgetId) {
+            const item = budgetList.find(b => b.id == budgetId);
+            if (item) {
+                // 填充表单
+                document.getElementById('budgetCategory').value = item.category;
+                document.getElementById('budgetItemName').value = item.item_name;
+                document.getElementById('budgetAmount').value = item.budget_amount;
+                document.getElementById('budgetActualAmount').value = item.actual_amount;
+                document.getElementById('budgetStatus').value = item.status;
+                document.getElementById('budgetNotes').value = item.notes || '';
+
+                // 修改模态框标题和表单行为
+                document.querySelector('#budgetModal .modal-header').textContent = '编辑预算项';
+                const form = document.getElementById('budgetForm');
+                form.onsubmit = async function(event) {
+                    event.preventDefault();
+                    await updateBudget(budgetId, event);
+                };
+
+                showModal('budgetModal');
+            }
+        }
+
+        async function updateBudget(budgetId, event) {
+            event.preventDefault();
+
+            const formData = {
+                category: document.getElementById('budgetCategory').value,
+                item_name: document.getElementById('budgetItemName').value,
+                budget_amount: parseFloat(document.getElementById('budgetAmount').value),
+                actual_amount: parseFloat(document.getElementById('budgetActualAmount').value),
+                status: document.getElementById('budgetStatus').value,
+                notes: document.getElementById('budgetNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/budget/${budgetId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('更新预算失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('预算更新成功', 'success');
+                    hideModal('budgetModal');
+                    await loadBudget();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '更新预算失败');
+                }
+
+            } catch (error) {
+                console.error('更新预算失败:', error);
+                showMessage('更新预算失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 删除预算
+        async function deleteBudget(budgetId) {
+            if (!confirm('确定要删除这个预算项吗？')) return;
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/budget/${budgetId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('删除预算失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('预算删除成功', 'success');
+                    await loadBudget();
+                    updateDashboard();
+                } else {
+                    throw new Error(result.error || '删除预算失败');
+                }
+
+            } catch (error) {
+                console.error('删除预算失败:', error);
+                showMessage('删除预算失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 加载收入预测数据
+        async function loadRevenue() {
+            try {
+                const response = await fetch(`/api/revenue/project/${currentProjectId}`);
+                if (!response.ok) throw new Error('加载收入预测数据失败');
+
+                revenueList = await response.json();
+                renderRevenueTable();
+                updateRevenueCharts();
+
+            } catch (error) {
+                console.error('加载收入预测数据失败:', error);
+                revenueList = [];
+                renderRevenueTable();
+            }
+        }
+
+        // 渲染收入预测表格
+        function renderRevenueTable() {
+            const tbody = document.getElementById('revenueTableBody');
+            if (!tbody) return;
+
+            if (revenueList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 40px; color: #718096;">
+                            暂无收入预测数据
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            let html = '';
+            let cumulativeRevenue = 0;
+
+            // 按月份和服务类型分组计算总收入
+            const monthlyRevenue = {};
+
+            revenueList.forEach(item => {
+                const expectedRevenue = parseFloat(item.unit_price) * parseInt(item.expected_quantity);
+                cumulativeRevenue += expectedRevenue;
+
+                const month = item.forecast_month;
+                if (!monthlyRevenue[month]) {
+                    monthlyRevenue[month] = 0;
+                }
+                monthlyRevenue[month] += expectedRevenue;
+
+                html += `
+                    <tr>
+                        <td>${item.forecast_month}</td>
+                        <td>${item.service_type}</td>
+                        <td>${parseFloat(item.unit_price).toLocaleString('zh-CN')}元</td>
+                        <td>${item.expected_quantity}</td>
+                        <td>${expectedRevenue.toLocaleString('zh-CN')}元</td>
+                        <td>${cumulativeRevenue.toLocaleString('zh-CN')}元</td>
+                        <td>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #4299e1; color: white; margin-right: 5px;" onclick="editRevenue(${item.id})">编辑</button>
+                            <button class="btn btn-sm" style="padding: 5px 10px; background: #f56565; color: white;" onclick="deleteRevenue(${item.id})">删除</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+        }
+
+        // 更新收入图表
+        function updateRevenueCharts() {
+            if (!revenueList.length) return;
+
+            // 按月聚合数据
+            const monthlyData = {};
+            const serviceTypeData = {};
+
+            revenueList.forEach(item => {
+                const revenue = parseFloat(item.unit_price) * parseInt(item.expected_quantity);
+                const month = item.forecast_month;
+                const serviceType = item.service_type;
+
+                // 月度数据
+                if (!monthlyData[month]) {
+                    monthlyData[month] = 0;
+                }
+                monthlyData[month] += revenue;
+
+                // 服务类型数据
+                if (!serviceTypeData[serviceType]) {
+                    serviceTypeData[serviceType] = 0;
+                }
+                serviceTypeData[serviceType] += revenue;
+            });
+
+            // 更新月度收入预测图表
+            if (revenueChart) {
+                revenueChart.data.labels = Object.keys(monthlyData);
+                revenueChart.data.datasets[0].data = Object.values(monthlyData);
+                revenueChart.update();
+            }
+
+            // 更新收入类型分布图表
+            if (revenueTypeChart) {
+                revenueTypeChart.data.labels = Object.keys(serviceTypeData);
+                revenueTypeChart.data.datasets[0].data = Object.values(serviceTypeData);
+                revenueTypeChart.update();
+            }
+        }
+
+        // 加载收入数据（根据时间范围）
+        async function loadRevenueData(months) {
+            try {
+                const response = await fetch(`/api/revenue/project/${currentProjectId}?months=${months}`);
+                if (!response.ok) throw new Error('加载收入数据失败');
+
+                revenueList = await response.json();
+                renderRevenueTable();
+                updateRevenueCharts();
+
+            } catch (error) {
+                console.error('加载收入数据失败:', error);
+                revenueList = [];
+                renderRevenueTable();
+            }
+        }
+
+        // 显示收入预测模态框
+        function showRevenueModal() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            // 重置表单
+            document.getElementById('revenueForm').reset();
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            document.getElementById('revenueForecastMonth').value = `${year}-${month}`;
+
+            showModal('revenueModal');
+        }
+
+        // 保存收入预测
+        async function saveRevenue(event) {
+            event.preventDefault();
+
+            const formData = {
+                project_id: currentProjectId,
+                forecast_month: document.getElementById('revenueForecastMonth').value,
+                service_type: document.getElementById('revenueForecastType').value,
+                unit_price: parseFloat(document.getElementById('revenueUnitPrice').value),
+                expected_quantity: parseInt(document.getElementById('revenueExpectedQuantity').value),
+                notes: document.getElementById('revenueNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/revenue/project/${currentProjectId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('保存收入预测失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('收入预测保存成功', 'success');
+                    hideModal('revenueModal');
+                    await loadRevenue();
+                } else {
+                    throw new Error(result.error || '保存收入预测失败');
+                }
+
+            } catch (error) {
+                console.error('保存收入预测失败:', error);
+                showMessage('保存收入预测失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 编辑收入预测
+        function editRevenue(revenueId) {
+            const item = revenueList.find(r => r.id == revenueId);
+            if (item) {
+                // 填充表单
+                document.getElementById('revenueForecastMonth').value = item.forecast_month;
+                document.getElementById('revenueForecastType').value = item.service_type;
+                document.getElementById('revenueUnitPrice').value = item.unit_price;
+                document.getElementById('revenueExpectedQuantity').value = item.expected_quantity;
+                document.getElementById('revenueNotes').value = item.notes || '';
+
+                // 修改模态框标题和表单行为
+                document.querySelector('#revenueModal .modal-header').textContent = '编辑收入预测';
+                const form = document.getElementById('revenueForm');
+                form.onsubmit = async function(event) {
+                    event.preventDefault();
+                    await updateRevenue(revenueId, event);
+                };
+
+                showModal('revenueModal');
+            }
+        }
+
+        async function updateRevenue(revenueId, event) {
+            event.preventDefault();
+
+            const formData = {
+                forecast_month: document.getElementById('revenueForecastMonth').value,
+                service_type: document.getElementById('revenueForecastType').value,
+                unit_price: parseFloat(document.getElementById('revenueUnitPrice').value),
+                expected_quantity: parseInt(document.getElementById('revenueExpectedQuantity').value),
+                notes: document.getElementById('revenueNotes').value
+            };
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/revenue/${revenueId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) throw new Error('更新收入预测失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('收入预测更新成功', 'success');
+                    hideModal('revenueModal');
+                    await loadRevenue();
+                } else {
+                    throw new Error(result.error || '更新收入预测失败');
+                }
+
+            } catch (error) {
+                console.error('更新收入预测失败:', error);
+                showMessage('更新收入预测失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 删除收入预测
+        async function deleteRevenue(revenueId) {
+            if (!confirm('确定要删除这个收入预测吗？')) return;
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/revenue/${revenueId}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) throw new Error('删除收入预测失败');
+
+                const result = await response.json();
+                if (result.success) {
+                    showMessage('收入预测删除成功', 'success');
+                    await loadRevenue();
+                } else {
+                    throw new Error(result.error || '删除收入预测失败');
+                }
+
+            } catch (error) {
+                console.error('删除收入预测失败:', error);
+                showMessage('删除收入预测失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 成本分布图
+            const costCtx = document.getElementById('costDistributionChart');
+            if (costCtx) {
+                costChart = new Chart(costCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['设备', '装修', '物料', '人工', '租金', '水电', '其他'],
+                        datasets: [{
+                            data: [0, 0, 0, 0, 0, 0, 0],
+                            backgroundColor: [
+                                '#667eea',
+                                '#48bb78',
+                                '#ed8936',
+                                '#f56565',
+                                '#4299e1',
+                                '#9f7aea',
+                                '#718096'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 项目进度图
+            const progressCtx = document.getElementById('projectProgressChart');
+            if (progressCtx) {
+                progressChart = new Chart(progressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['设备', '装修', '物料', '预算', '房间', '收入'],
+                        datasets: [{
+                            label: '完成度 (%)',
+                            data: [0, 0, 0, 0, 0, 0],
+                            backgroundColor: '#667eea'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: {
+                                    callback: function(value) {
+                                        return value + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 月度收入预测图
+            const revenueCtx = document.getElementById('revenueForecastChart');
+            if (revenueCtx) {
+                revenueChart = new Chart(revenueCtx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: '收入预测 (元)',
+                            data: [],
+                            borderColor: '#48bb78',
+                            backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return '收入: ' + context.parsed.y.toLocaleString('zh-CN') + '元';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return value.toLocaleString('zh-CN') + '元';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 收入类型分布图
+            const revenueTypeCtx = document.getElementById('revenueTypeChart');
+            if (revenueTypeCtx) {
+                revenueTypeChart = new Chart(revenueTypeCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            data: [],
+                            backgroundColor: [
+                                '#667eea',
+                                '#48bb78',
+                                '#ed8936',
+                                '#f56565',
+                                '#4299e1',
+                                '#9f7aea'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'right'
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // 更新图表数据
+        function updateCharts() {
+            // 更新成本分布图
+            if (costChart) {
+                const equipmentTotal = equipmentList.reduce((sum, eq) => sum + parseFloat(eq.total_price), 0);
+                const decorationTotal = decorationList.reduce((sum, item) => sum + parseFloat(item.total_price), 0);
+                const inventoryTotal = inventoryList.reduce((sum, item) =>
+                    sum + (parseFloat(item.stock_quantity) * parseFloat(item.unit_price)), 0);
+                const budgetTotal = budgetList.reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+
+                // 假设其他成本分布
+                const laborTotal = budgetList.filter(b => b.category === '人工')
+                    .reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+                const rentTotal = budgetList.filter(b => b.category === '租金')
+                    .reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+                const utilityTotal = budgetList.filter(b => b.category === '水电')
+                    .reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+                const otherTotal = budgetTotal - equipmentTotal - decorationTotal - inventoryTotal - laborTotal - rentTotal - utilityTotal;
+
+                costChart.data.datasets[0].data = [
+                    equipmentTotal, decorationTotal, inventoryTotal,
+                    laborTotal, rentTotal, utilityTotal, Math.max(otherTotal, 0)
+                ];
+                costChart.update();
+            }
+
+            // 更新项目进度图
+            if (progressChart) {
+                // 计算各项完成度（这里使用模拟数据）
+                const equipmentProgress = equipmentList.length > 0 ? 80 : 0;
+                const decorationProgress = decorationList.length > 0 ? 60 : 0;
+                const inventoryProgress = inventoryList.length > 0 ? 90 : 0;
+                const budgetProgress = budgetList.length > 0 ? 70 : 0;
+                const roomsProgress = roomList.length > 0 ? 85 : 0;
+                const revenueProgress = revenueList.length > 0 ? 50 : 0;
+
+                progressChart.data.datasets[0].data = [
+                    equipmentProgress, decorationProgress, inventoryProgress,
+                    budgetProgress, roomsProgress, revenueProgress
+                ];
+                progressChart.update();
+            }
+        }
+
+        // 更新仪表板
+        function updateDashboard() {
+            const equipmentTotal = equipmentList.reduce((sum, eq) => sum + parseFloat(eq.total_price), 0);
+            const decorationTotal = decorationList.reduce((sum, item) => sum + parseFloat(item.total_price), 0);
+            const inventoryTotal = inventoryList.reduce((sum, item) =>
+                sum + (parseFloat(item.stock_quantity) * parseFloat(item.unit_price)), 0);
+            const budgetTotal = budgetList.reduce((sum, item) => sum + parseFloat(item.budget_amount), 0);
+
+            document.getElementById('totalEquipmentValue').textContent = equipmentTotal.toLocaleString('zh-CN') + '元';
+            document.getElementById('totalDecorationBudget').textContent = decorationTotal.toLocaleString('zh-CN') + '元';
+            document.getElementById('totalInventoryValue').textContent = inventoryTotal.toLocaleString('zh-CN') + '元';
+            document.getElementById('totalCostBudget').textContent = budgetTotal.toLocaleString('zh-CN') + '元';
+
+            document.getElementById('equipmentStatus').textContent = `${equipmentList.length}台设备`;
+            document.getElementById('decorationStatus').textContent = `${decorationList.length}项装修`;
+            document.getElementById('inventoryStatus').textContent = `${inventoryList.length}种物料`;
+            document.getElementById('budgetStatus').textContent = `${budgetList.length}项预算`;
+        }
+
+        // 更新项目状态显示
+        function updateProjectStatus() {
+            if (!currentProjectData) return;
+
+            const statusElement = document.getElementById('projectStatus');
+            const progressElement = document.getElementById('projectProgress');
+
+            const status = getProjectStatus(currentProjectData);
+            const totalInvestment = currentProjectData.total_investment || 0;
+            const investmentTarget = currentProjectData.investment_target || 0;
+
+            // 更新状态标签
+            statusElement.textContent = status;
+            statusElement.className = `project-status status-${getStatusClass(status)}`;
+
+            // 更新进度信息
+            if (investmentTarget > 0) {
+                const progressPercent = Math.min(Math.round((totalInvestment / investmentTarget) * 100), 100);
+                progressElement.textContent = `投资进度: ${progressPercent}% (${totalInvestment.toLocaleString('zh-CN')}元 / ${investmentTarget.toLocaleString('zh-CN')}元)`;
+            } else {
+                progressElement.textContent = `总投资: ${totalInvestment.toLocaleString('zh-CN')}元`;
+            }
+        }
+
+        function getStatusClass(status) {
+            switch(status) {
+                case '规划中': return 'planning';
+                case '筹备中': return 'setting';
+                case '运营中': return 'operating';
+                default: return 'planning';
+            }
+        }
+
+        // 导出报告
+        async function exportReport() {
+            if (!currentProjectId) {
+                showMessage('请先选择项目', 'warning');
+                return;
+            }
+
+            showLoading();
+            try {
+                const response = await fetch(`/api/report/export/${currentProjectId}`);
+                if (!response.ok) throw new Error('生成报告失败');
+
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `足浴店项目报告_${currentProjectData.name}_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+
+                showMessage('报告导出成功', 'success');
+            } catch (error) {
+                console.error('导出报告失败:', error);
+                showMessage('导出报告失败: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        // 显示模态框
+        function showModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'flex';
+                // 添加ESC键关闭功能
+                const escHandler = function(event) {
+                    if (event.key === 'Escape') {
+                        hideModal(modalId);
+                    }
+                };
+                modal._escHandler = escHandler;
+                document.addEventListener('keydown', escHandler);
+            }
+        }
+
+        // 隐藏模态框
+        function hideModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.style.display = 'none';
+                // 移除ESC键监听
+                if (modal._escHandler) {
+                    document.removeEventListener('keydown', modal._escHandler);
+                    delete modal._escHandler;
+                }
+            }
+        }
+
+        // 显示加载动画
+        function showLoading() {
+            const loading = document.getElementById('loadingOverlay');
+            if (loading) {
+                loading.style.display = 'flex';
+            }
+        }
+
+        // 隐藏加载动画
+        function hideLoading() {
+            const loading = document.getElementById('loadingOverlay');
+            if (loading) {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 显示消息提示
+        function showMessage(message, type = 'info') {
+            // 创建一个临时的消息提示元素
+            const messageDiv = document.createElement('div');
+            messageDiv.textContent = message;
+            messageDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 10000;
+                animation: slideIn 0.3s ease;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            `;
+
+            switch(type) {
+                case 'success':
+                    messageDiv.style.background = 'linear-gradient(135deg, #48bb78, #38a169)';
+                    break;
+                case 'error':
+                    messageDiv.style.background = 'linear-gradient(135deg, #f56565, #e53e3e)';
+                    break;
+                case 'warning':
+                    messageDiv.style.background = 'linear-gradient(135deg, #ed8936, #dd6b20)';
+                    break;
+                default:
+                    messageDiv.style.background = 'linear-gradient(135deg, #4299e1, #3182ce)';
+            }
+
+            document.body.appendChild(messageDiv);
+
+            // 3秒后自动移除
+            setTimeout(() => {
+                messageDiv.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => {
+                    if (messageDiv.parentNode) {
+                        messageDiv.parentNode.removeChild(messageDiv);
+                    }
+                }, 300);
+            }, 3000);
+
+            // 添加动画样式
+            if (!document.querySelector('#messageAnimations')) {
+                const style = document.createElement('style');
+                style.id = 'messageAnimations';
+                style.textContent = `
+                    @keyframes slideIn {
+                        from { transform: translateX(100%); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                    @keyframes slideOut {
+                        from { transform: translateX(0); opacity: 1; }
+                        to { transform: translateX(100%); opacity: 0; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        }
+
+        // 防止表单提交页面刷新
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(event) {
+                event.preventDefault();
+            });
+        });
+
+        // 点击模态框外部关闭模态框
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    hideModal(modal.id);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

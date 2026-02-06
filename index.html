@@ -672,10 +672,16 @@
     </div>
 
     <div class="container">
-        <header>
-            <h1>多人合伙投资份额分配系统</h1>
-            <p class="subtitle">基于SQLite数据库的投资份额管理与计算工具</p>
-        </header>
+        <!-- 在header部分添加导航 -->
+<header>
+    <h1>多人合伙投资份额分配系统</h1>
+    <p class="subtitle">基于SQLite数据库的投资份额管理与计算工具</p>
+    <div style="margin-top: 15px;">
+        <a href="/" style="margin-right: 15px; color: #3498db; text-decoration: none; font-weight: 600;">首页</a>
+        <a href="/tier_management.html" style="margin-right: 15px; color: #3498db; text-decoration: none;">多级合伙人管理</a>
+        <span style="color: #7f8c8d; font-size: 0.9rem;">| 专业投资管理工具</span>
+    </div>
+</header>
 
         <div class="app-container">
             <div class="sidebar">
@@ -1035,56 +1041,82 @@
             await switchProject(projectId, projectName);  // 添加 await
         }
 
-        async function switchProject(projectId, projectName) {
-            currentProjectId = projectId;
+async function switchProject(projectId, projectName) {
+    currentProjectId = projectId;
 
-            // 重置未保存数据
-            unsavedPartners = [];
-            dirtyPartners = [];
-            deletedPartners = [];
+    // 完全重置所有数据
+    partners = [];
+    unsavedPartners = [];
+    dirtyPartners = [];
+    deletedPartners = [];
 
-            // 更新UI显示选中的项目
-            document.querySelectorAll('.project-item').forEach(item => {
-                item.classList.remove('active');
-            });
+    // 更新UI显示选中的项目
+    document.querySelectorAll('.project-item').forEach(item => {
+        item.classList.remove('active');
+    });
 
-            // 找到并激活对应的项目
-            const projectItems = document.querySelectorAll('.project-item');
-            projectItems.forEach(item => {
-                const projectNameElement = item.querySelector('.project-name');
-                if (projectNameElement && projectNameElement.textContent.trim() === projectName) {
-                    item.classList.add('active');
-                }
-            });
-
-            // 显示项目内容
-            document.getElementById('noProjectSelected').style.display = 'none';
-            document.getElementById('projectContent').style.display = 'block';
-            document.getElementById('currentProjectName').textContent = projectName;
-
-            // 加载项目详情和合伙人数据 - 使用 Promise.all 确保并行加载完成
-            try {
-                await Promise.all([
-                    loadProjectDetails(projectId),
-                    loadProjectPartners(projectId)
-                ]);
-
-                renderPartnersTable();
-
-                // 更新日志
-                loadRecentLogs(projectId);
-
-                // 更新状态
-                updateSaveStatus();
-
-                // 强制重新计算和渲染
-                calculateShares();
-
-            } catch (error) {
-                console.error('切换项目失败:', error);
-                showMessage('加载项目数据失败', 'error');
-            }
+    // 找到并激活对应的项目
+    const projectItems = document.querySelectorAll('.project-item');
+    projectItems.forEach(item => {
+        const projectNameElement = item.querySelector('.project-name');
+        if (projectNameElement && projectNameElement.textContent.trim() === projectName) {
+            item.classList.add('active');
         }
+    });
+
+    // 显示项目内容
+    document.getElementById('noProjectSelected').style.display = 'none';
+    document.getElementById('projectContent').style.display = 'block';
+    document.getElementById('currentProjectName').textContent = projectName;
+
+    // 立即渲染空表格，显示加载状态
+    renderPartnersTable();
+
+    // 重置计算结果
+    document.getElementById('totalInvestment').textContent = '0.00 元';
+    document.getElementById('totalPartners').textContent = '0';
+
+    // 清空结果表格
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    if (resultsTableBody) {
+        resultsTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 30px; color: #7f8c8d;">
+                    暂无合伙人数据
+                </td>
+            </tr>
+        `;
+    }
+
+    // 清空图表
+    const chartContainer = document.getElementById('chartContainer');
+    if (chartContainer) {
+        chartContainer.innerHTML = '<p style="text-align: center; width: 100%; color: #7f8c8d;">暂无数据</p>';
+    }
+
+    const legendContainer = document.getElementById('legendContainer');
+    if (legendContainer) {
+        legendContainer.innerHTML = '';
+    }
+
+    // 更新状态
+    updateSaveStatus();
+
+    try {
+        // 并行加载项目详情和合伙人数据
+        await Promise.all([
+            loadProjectDetails(projectId),
+            loadProjectPartners(projectId)
+        ]);
+
+        // 更新日志
+        loadRecentLogs(projectId);
+
+    } catch (error) {
+        console.error('切换项目失败:', error);
+        showMessage('加载项目数据失败', 'error');
+    }
+}
 
         // 加载项目详情
         async function loadProjectDetails(projectId) {
@@ -1105,125 +1137,217 @@
             }
         }
 
-        // 加载项目合伙人
-        async function loadProjectPartners(projectId) {
-            try {
-                const response = await fetch(`/api/project/${projectId}/partners`);
-                partners = await response.json();
+// 加载项目合伙人
+async function loadProjectPartners(projectId) {
+    console.log(`开始加载项目 ${projectId} 的合伙人数据`);
 
-                // 清空之前的脏数据
-                dirtyPartners = [];
-                deletedPartners = [];
+    try {
+        const response = await fetch(`/api/project/${projectId}/partners`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}: 加载合伙人数据失败`);
 
-                // 渲染表格
-                renderPartnersTable();
+        // 重置合伙人数据
+        const data = await response.json();
+        console.log('从API获取的合伙人数据:', data);
 
-                // 重新计算份额
-                calculateShares();
+        partners = Array.isArray(data) ? data : [];
 
-                // 更新状态
-                updateSaveStatus();
+        console.log(`项目 ${projectId} 共有 ${partners.length} 个合伙人`);
 
-            } catch (error) {
-                console.error('加载合伙人数据失败:', error);
-                showMessage('加载合伙人数据失败', 'error');
+        // 清空之前的脏数据
+        dirtyPartners = [];
+        deletedPartners = [];
 
-                // 如果失败，清空数据
-                partners = [];
-                renderPartnersTable();
-                calculateShares();
-            }
+        // 渲染表格
+        renderPartnersTable();
+
+        // 更新状态
+        updateSaveStatus();
+
+    } catch (error) {
+        console.error('加载合伙人数据失败:', error);
+        showMessage('加载合伙人数据失败', 'error');
+
+        // 如果失败，清空数据
+        partners = [];
+        dirtyPartners = [];
+        deletedPartners = [];
+
+        renderPartnersTable();
+        updateSaveStatus();
+    }
+}
+
+// 渲染合伙人表格
+function renderPartnersTable() {
+    // 检查当前是否在项目详情页
+    const projectContent = document.getElementById('projectContent');
+    if (!projectContent || projectContent.style.display === 'none') {
+        console.log('项目内容未显示，跳过渲染合伙人表格');
+        return;
+    }
+
+    const tableBody = document.getElementById('partnersTableBody');
+    const noPartnersRow = document.getElementById('noPartnersRow');
+
+    // 检查元素是否存在
+    if (!tableBody) {
+        console.error('合伙人表格主体元素未找到');
+        return;
+    }
+
+    console.log('渲染合伙人表格，数据:', {
+        partnersCount: partners.length,
+        unsavedCount: unsavedPartners.length,
+        dirtyCount: dirtyPartners.length,
+        deletedCount: deletedPartners.length
+    });
+
+    // 清空表格内容（包括可能存在的空状态行）
+    tableBody.innerHTML = '';
+
+    // 检查是否有合伙人数据
+    const hasPartners = partners.length > 0 || unsavedPartners.length > 0;
+    const hasVisiblePartners = partners.length > 0 || unsavedPartners.length > 0 || dirtyPartners.length > 0;
+
+    console.log('是否有合伙人数据:', { hasPartners, hasVisiblePartners });
+
+    if (!hasVisiblePartners) {
+        // 创建空状态行
+        let emptyRow = document.getElementById('noPartnersRow');
+        if (!emptyRow) {
+            emptyRow = document.createElement('tr');
+            emptyRow.id = 'noPartnersRow';
+            emptyRow.innerHTML = `
+                <td colspan="5" style="text-align: center; padding: 40px; color: #7f8c8d;">
+                    <p>暂无合伙人信息</p>
+                    <p>点击上方的"添加合伙人行"按钮开始添加</p>
+                </td>
+            `;
+        }
+        emptyRow.style.display = '';
+        tableBody.appendChild(emptyRow);
+
+        // 清空计算结果
+        resetResultsDisplay();
+        return;
+    }
+
+    // 如果有空状态行，先移除
+    const existingEmptyRow = document.getElementById('noPartnersRow');
+    if (existingEmptyRow) {
+        existingEmptyRow.style.display = 'none';
+    }
+
+    let html = '';
+
+    // 渲染已保存的合伙人（排除已标记删除的）
+    partners.forEach((partner, index) => {
+        const isDirty = dirtyPartners.some(p => p.id === partner.id);
+        const isDeleted = deletedPartners.includes(partner.id);
+
+        if (isDeleted) {
+            console.log(`合伙人 ${partner.name} 已标记为删除，跳过渲染`);
+            return;
         }
 
-        // 渲染合伙人表格
-        function renderPartnersTable() {
-            const tableBody = document.getElementById('partnersTableBody');
-            const noPartnersRow = document.getElementById('noPartnersRow');
+        html += `
+            <tr data-id="${partner.id}" class="partner-row ${isDirty ? 'dirty' : ''}">
+                <td>
+                    <input type="text" class="partner-name" value="${partner.name || ''}"
+                           placeholder="请输入合伙人姓名" required
+                           oninput="markPartnerDirty(${partner.id})">
+                    ${isDirty ? '<span class="status-indicator status-unsaved"></span>' : ''}
+                </td>
+                <td>
+                    <input type="number" class="partner-investment" value="${partner.investment || ''}"
+                           min="0" step="0.01" placeholder="请输入投资金额" required
+                           oninput="markPartnerDirty(${partner.id})">
+                </td>
+                <td>
+                    <input type="text" class="partner-contact" value="${partner.contact_info || ''}"
+                           placeholder="电话/邮箱"
+                           oninput="markPartnerDirty(${partner.id})">
+                </td>
+                <td>
+                    <input type="text" class="partner-notes" value="${partner.notes || ''}"
+                           placeholder="备注信息"
+                           oninput="markPartnerDirty(${partner.id})">
+                </td>
+                <td>
+                    <button class="btn btn-danger" onclick="confirmDeletePartner(${partner.id})">
+                        删除
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 
-            if (partners.length === 0 && unsavedPartners.length === 0) {
-                noPartnersRow.style.display = '';
-                return;
-            }
+    // 渲染未保存的新增合伙人
+    unsavedPartners.forEach(partner => {
+        html += `
+            <tr data-temp-id="${partner.tempId}" class="partner-row new">
+                <td>
+                    <input type="text" class="partner-name" value="${partner.name || ''}"
+                           placeholder="请输入合伙人姓名" required
+                           oninput="updateUnsavedPartner('${partner.tempId}', 'name', this.value)">
+                    <span class="status-indicator status-new"></span>
+                </td>
+                <td>
+                    <input type="number" class="partner-investment" value="${partner.investment || ''}"
+                           min="0" step="0.01" placeholder="请输入投资金额" required
+                           oninput="updateUnsavedPartner('${partner.tempId}', 'investment', this.value)">
+                </td>
+                <td>
+                    <input type="text" class="partner-contact" value="${partner.contact_info || ''}"
+                           placeholder="电话/邮箱"
+                           oninput="updateUnsavedPartner('${partner.tempId}', 'contact_info', this.value)">
+                </td>
+                <td>
+                    <input type="text" class="partner-notes" value="${partner.notes || ''}"
+                           placeholder="备注信息"
+                           oninput="updateUnsavedPartner('${partner.tempId}', 'notes', this.value)">
+                </td>
+                <td>
+                    <button class="btn btn-danger" onclick="removeUnsavedPartner('${partner.tempId}')">
+                        取消
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
 
-            noPartnersRow.style.display = 'none';
-            let html = '';
+    tableBody.innerHTML = html;
 
-            // 渲染已保存的合伙人
-            partners.forEach((partner, index) => {
-                const isDirty = dirtyPartners.some(p => p.id === partner.id);
-                const isDeleted = deletedPartners.includes(partner.id);
+    // 重新计算份额
+    calculateShares();
+}
 
-                if (isDeleted) return;
+// 重置结果显示
+function resetResultsDisplay() {
+    document.getElementById('totalInvestment').textContent = '0.00 元';
+    document.getElementById('totalPartners').textContent = '0';
 
-                html += `
-                    <tr data-id="${partner.id}" class="partner-row ${isDirty ? 'dirty' : ''}">
-                        <td>
-                            <input type="text" class="partner-name" value="${partner.name || ''}"
-                                   placeholder="请输入合伙人姓名" required
-                                   oninput="markPartnerDirty(${partner.id})">
-                            ${isDirty ? '<span class="status-indicator status-unsaved"></span>' : ''}
-                        </td>
-                        <td>
-                            <input type="number" class="partner-investment" value="${partner.investment || ''}"
-                                   min="0" step="0.01" placeholder="请输入投资金额" required
-                                   oninput="markPartnerDirty(${partner.id})">
-                        </td>
-                        <td>
-                            <input type="text" class="partner-contact" value="${partner.contact_info || ''}"
-                                   placeholder="电话/邮箱"
-                                   oninput="markPartnerDirty(${partner.id})">
-                        </td>
-                        <td>
-                            <input type="text" class="partner-notes" value="${partner.notes || ''}"
-                                   placeholder="备注信息"
-                                   oninput="markPartnerDirty(${partner.id})">
-                        </td>
-                        <td>
-                            <button class="btn btn-danger" onclick="confirmDeletePartner(${partner.id})">
-                                删除
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+    const resultsTableBody = document.getElementById('resultsTableBody');
+    if (resultsTableBody) {
+        resultsTableBody.innerHTML = `
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 30px; color: #7f8c8d;">
+                    暂无合伙人数据
+                </td>
+            </tr>
+        `;
+    }
 
-            // 渲染未保存的新增合伙人
-            unsavedPartners.forEach(partner => {
-                html += `
-                    <tr data-temp-id="${partner.tempId}" class="partner-row new">
-                        <td>
-                            <input type="text" class="partner-name" value="${partner.name || ''}"
-                                   placeholder="请输入合伙人姓名" required
-                                   oninput="updateUnsavedPartner('${partner.tempId}', 'name', this.value)">
-                            <span class="status-indicator status-new"></span>
-                        </td>
-                        <td>
-                            <input type="number" class="partner-investment" value="${partner.investment || ''}"
-                                   min="0" step="0.01" placeholder="请输入投资金额" required
-                                   oninput="updateUnsavedPartner('${partner.tempId}', 'investment', this.value)">
-                        </td>
-                        <td>
-                            <input type="text" class="partner-contact" value="${partner.contact_info || ''}"
-                                   placeholder="电话/邮箱"
-                                   oninput="updateUnsavedPartner('${partner.tempId}', 'contact_info', this.value)">
-                        </td>
-                        <td>
-                            <input type="text" class="partner-notes" value="${partner.notes || ''}"
-                                   placeholder="备注信息"
-                                   oninput="updateUnsavedPartner('${partner.tempId}', 'notes', this.value)">
-                        </td>
-                        <td>
-                            <button class="btn btn-danger" onclick="removeUnsavedPartner('${partner.tempId}')">
-                                取消
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
+    const chartContainer = document.getElementById('chartContainer');
+    if (chartContainer) {
+        chartContainer.innerHTML = '<p style="text-align: center; width: 100%; color: #7f8c8d;">暂无数据</p>';
+    }
 
-            tableBody.innerHTML = html;
-            calculateShares();
-        }
+    const legendContainer = document.getElementById('legendContainer');
+    if (legendContainer) {
+        legendContainer.innerHTML = '';
+    }
+}
 
         // 标记合伙人需要更新
         function markPartnerDirty(partnerId) {
